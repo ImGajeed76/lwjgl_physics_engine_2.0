@@ -12,12 +12,10 @@ class Mesh {
     fun create(vertices: FloatArray): Boolean {
         vertexArrayObject = glGenVertexArrays()
         glBindVertexArray(vertexArrayObject)
-
         vertexBufferObject = glGenBuffers()
         glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObject)
         glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW)
         GL20.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0)
-
         glBindVertexArray(0)
 
         vertexCount = vertices.size / 3

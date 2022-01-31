@@ -1,5 +1,7 @@
 package game_engine.graphics
 
+import game_engine.maths.Camera
+import game_engine.maths.Transform
 import org.lwjgl.opengl.GL20.*
 import java.io.File
 import java.io.IOException
@@ -10,6 +12,10 @@ class Shader {
     private var vertexShader: Int = 0
     private var fragmentShader: Int = 0
     private var programm: Int = 0
+
+    private var uniMatProjection: Int = 0
+    private var uniMatTransformWorld: Int = 0
+    private var uniMatTransformObject: Int = 0
 
     fun create(vertex_shader: String, fragment_shader: String): Boolean {
 
@@ -47,6 +53,10 @@ class Shader {
             error(glGetProgramInfoLog(programm))
         }
 
+        uniMatProjection = glGetUniformLocation(programm, "cameraProjection")
+        uniMatTransformWorld = glGetUniformLocation(programm, "transformWorld")
+        uniMatTransformObject = glGetUniformLocation(programm, "transformObject")
+
         return true
     }
 
@@ -64,9 +74,31 @@ class Shader {
         glUseProgram(programm)
     }
 
+    fun setCamera(camera: Camera) {
+        if (uniMatProjection != -1) {
+            val matrix = FloatArray(16)
+            camera.getProjection().get(matrix)
+            glUniformMatrix4fv(uniMatProjection, false, matrix)
+        }
+
+        if (uniMatTransformWorld != -1) {
+            val matrix = FloatArray(16)
+            camera.getTransformation().get(matrix)
+            glUniformMatrix4fv(uniMatTransformWorld, false, matrix)
+        }
+    }
+
+    fun setTransform(transform: Transform) {
+        if (uniMatTransformObject != -1) {
+            val matrix = FloatArray(16)
+            transform.getTransformation().get(matrix)
+            glUniformMatrix4fv(uniMatTransformObject, false, matrix)
+        }
+    }
+
     private fun readSource(file: String): String {
-        var reader: File = File("")
-        var source: String = ""
+        val reader: File
+        var source = ""
 
         try {
             reader = File("$resourcePath/shaders/$file")
