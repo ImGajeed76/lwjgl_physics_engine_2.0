@@ -23,6 +23,8 @@ class GameWindow(var width: Int, var height: Int, var title: String) {
     var fpsTimer: Long = System.currentTimeMillis()
     var showFpsInTitle = true
 
+    var deltaTime = 1f
+
     init {
         if (!glfwInit()) {
             throw IllegalStateException("Failed to initialize GLFW!")
@@ -48,6 +50,16 @@ class GameWindow(var width: Int, var height: Int, var title: String) {
         glfwSetWindowPos(window, (videoMode!!.width() - width) / 2, (videoMode!!.height() - height) / 2)
 
         glfwShowWindow(window)
+        glfwSwapInterval(0)
+
+        createCallbacks()
+        input.setCursorPos(window, (width / 2).toDouble(), (height / 2).toDouble())
+    }
+
+    private fun createCallbacks() {
+        glfwSetKeyCallback(window, input.getKeyboardCallback())
+        glfwSetCursorPosCallback(window, input.getMouseMoveCallback())
+        glfwSetMouseButtonCallback(window, input.getMouseButtonCallback())
     }
 
     fun windowOpen(): Boolean {
@@ -55,56 +67,63 @@ class GameWindow(var width: Int, var height: Int, var title: String) {
     }
 
     fun updateAfterLast() {
+        updateDeltaTime()
         updateFPS()
         checkExit()
         input.update()
-        //updateCam()
+        updateCam()
         glfwPollEvents()
 
         glClear(GL_COLOR_BUFFER_BIT)
         glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w)
     }
 
+    private fun updateDeltaTime() {
+        if (FPS > 0) {
+            deltaTime = 60 / FPS
+        }
+    }
+
     fun updateCam() {
         if (input.isKeyDown(GLFW_KEY_W)) {
-            CAMERA.position.x -= CAMERA.speed * sin(-CAMERA.rotation.y)
-            CAMERA.position.y -= CAMERA.speed * sin(-CAMERA.rotation.x)
-            CAMERA.position.z -= CAMERA.speed * -cos(-CAMERA.rotation.y)
-            CAMERA.position.z -= CAMERA.speed
+            //CAMERA.position.x -= CAMERA.speed * sin(-CAMERA.rotation.y) * deltaTime
+            //CAMERA.position.y -= CAMERA.speed * sin(-CAMERA.rotation.x) * deltaTime
+            //CAMERA.position.z -= CAMERA.speed * -cos(-CAMERA.rotation.y) * deltaTime
+            CAMERA.position.z -= CAMERA.speed * deltaTime
         }
 
         if (input.isKeyDown(GLFW_KEY_S)) {
-            CAMERA.position.x += CAMERA.speed * sin(-CAMERA.rotation.y)
-            CAMERA.position.y += CAMERA.speed * sin(-CAMERA.rotation.x)
-            CAMERA.position.z += CAMERA.speed * -cos(-CAMERA.rotation.y)
-            CAMERA.position.z += CAMERA.speed
+            //CAMERA.position.x += CAMERA.speed * sin(-CAMERA.rotation.y) * deltaTime
+            //CAMERA.position.y += CAMERA.speed * sin(-CAMERA.rotation.x) * deltaTime
+            //CAMERA.position.z += CAMERA.speed * -cos(-CAMERA.rotation.y) * deltaTime
+            CAMERA.position.z += CAMERA.speed * deltaTime
         }
 
         if (input.isKeyDown(GLFW_KEY_A)) {
-            CAMERA.position.z -= CAMERA.speed * sin(-CAMERA.rotation.y)
-            CAMERA.position.x -= CAMERA.speed * -cos(-CAMERA.rotation.y)
-            CAMERA.position.x -= CAMERA.speed
+            //CAMERA.position.z -= CAMERA.speed * sin(-CAMERA.rotation.y) * deltaTime
+            //CAMERA.position.x -= CAMERA.speed * -cos(-CAMERA.rotation.y) * deltaTime
+            CAMERA.position.x -= CAMERA.speed * deltaTime
         }
 
         if (input.isKeyDown(GLFW_KEY_D)) {
-            CAMERA.position.z += CAMERA.speed * sin(-CAMERA.rotation.y)
-            CAMERA.position.x += CAMERA.speed * -cos(-CAMERA.rotation.y)
-            CAMERA.position.x += CAMERA.speed
+            //CAMERA.position.z += CAMERA.speed * sin(-CAMERA.rotation.y) * deltaTime
+            //CAMERA.position.x += CAMERA.speed * -cos(-CAMERA.rotation.y) * deltaTime
+            CAMERA.position.x += CAMERA.speed * deltaTime
         }
 
         if (input.isKeyDown(GLFW_KEY_LEFT_SHIFT) || input.isKeyDown(GLFW_KEY_Q)) {
-            CAMERA.position.y -= CAMERA.speed
+            CAMERA.position.y -= CAMERA.speed * deltaTime
         }
 
         if (input.isKeyDown(GLFW_KEY_SPACE) || input.isKeyDown(GLFW_KEY_E)) {
-            CAMERA.position.y += CAMERA.speed
+            CAMERA.position.y += CAMERA.speed * deltaTime
         }
 
         val mouseX = input.getMouseX() - width / 2
         val mouseY = input.getMouseY() - height / 2
 
-        //CAMERA.rotation.x += (mouseX * CAMERA.speed).toFloat()
-        //CAMERA.rotation.y += (mouseY * CAMERA.speed).toFloat()
+        CAMERA.rotation.rotateAxis(Math.toRadians((mouseX * CAMERA.speed * deltaTime)).toFloat(), 0f, -1f, 0f)
+        CAMERA.rotation.rotateAxis(Math.toRadians((mouseY * CAMERA.speed * deltaTime)).toFloat(), -1f, 0f, 0f)
 
         input.setCursorPos(window, (width / 2).toDouble(), (height / 2).toDouble())
     }

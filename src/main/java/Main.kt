@@ -9,6 +9,8 @@ import org.joml.Vector3f
 val CAMERA: Camera = Camera()
 val cube = Cube(Vector3f(2f))
 
+lateinit var gameWindow: GameWindow
+
 val testTransform = Transform()
 val testMesh = Mesh()
 val testVertexArray = floatArrayOf(
@@ -18,16 +20,16 @@ val testVertexArray = floatArrayOf(
 val basicShader = Shader()
 
 fun main() {
-    val gameWindow = GameWindow(640, 480, "Physics Engine")
-
     //testMesh.create(testVertexArray)
     //basicShader.create("basic_vertex.glsl", "basic_fragment.glsl")
+
+    gameWindow = GameWindow(1000, 1000, "Physics Engine")
 
     cube.createMesh()
     cube.createShader("basic_vertex.glsl", "basic_fragment.glsl")
 
     CAMERA.setPerspective(gameWindow.getFOV(70.0), gameWindow.getAspectRatio(), 0.01f, 1000f)
-    CAMERA.position = Vector3f(0f, 2f, 10f)
+    CAMERA.position = Vector3f(0f, 0f, 10f)
 
     while (gameWindow.windowOpen()) {
         gameWindow.updateAfterLast()
@@ -40,8 +42,9 @@ fun main() {
 }
 
 fun update() {
-    testTransform.rotation.rotateAxis(Math.toRadians(1.0).toFloat(), 0f, 1f, 0f)
-    testTransform.rotation.rotateAxis(Math.toRadians(0.5).toFloat(), 1f, 0f, 0f)
+    testTransform.rotation.rotateAxis(Math.toRadians(1.0 * gameWindow.deltaTime).toFloat(), 0f, 1f, 0f)
+    testTransform.rotation.rotateAxis(Math.toRadians(0.5 * gameWindow.deltaTime).toFloat(), 1f, 0f, 0f)
+    println(CAMERA.rotation)
 
     //basicShader.useShader()
     //basicShader.setCamera(camera)

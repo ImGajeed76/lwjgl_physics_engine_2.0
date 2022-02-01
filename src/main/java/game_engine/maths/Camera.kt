@@ -8,7 +8,7 @@ class Camera {
     var position: Vector3f = Vector3f()
     var rotation: Quaternionf = Quaternionf()
     private var projection: Matrix4f = Matrix4f()
-    var speed: Float = 0.0002F
+    var speed: Float = 0.2F
 
     fun setOrthographic(left: Float, right: Float, top: Float, bottom: Float) {
         projection.setOrtho2D(left, right, bottom, top)
