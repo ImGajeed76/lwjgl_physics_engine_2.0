@@ -4,6 +4,7 @@ import CAMERA
 import game_engine.input.Input
 import org.joml.Math.cos
 import org.joml.Math.sin
+import org.joml.Vector3f
 import org.joml.Vector4f
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWVidMode
@@ -24,6 +25,9 @@ class GameWindow(var width: Int, var height: Int, var title: String) {
     var showFpsInTitle = true
 
     var deltaTime = 1f
+
+    var camRotX = 0f
+    var camRotY = 0f
 
     init {
         if (!glfwInit()) {
@@ -54,6 +58,7 @@ class GameWindow(var width: Int, var height: Int, var title: String) {
 
         createCallbacks()
         input.setCursorPos(window, (width / 2).toDouble(), (height / 2).toDouble())
+        CAMERA.rotation.setAngleAxis(0f, 1f, 1f, 1f)
     }
 
     private fun createCallbacks() {
@@ -85,29 +90,33 @@ class GameWindow(var width: Int, var height: Int, var title: String) {
     }
 
     fun updateCam() {
+        val rot = Vector3f()
+        rot.x = camRotY
+        rot.y = camRotX
+
         if (input.isKeyDown(GLFW_KEY_W)) {
-            //CAMERA.position.x -= CAMERA.speed * sin(-CAMERA.rotation.y) * deltaTime
-            //CAMERA.position.y -= CAMERA.speed * sin(-CAMERA.rotation.x) * deltaTime
-            //CAMERA.position.z -= CAMERA.speed * -cos(-CAMERA.rotation.y) * deltaTime
+            CAMERA.position.x -= CAMERA.speed * sin(rot.y) * deltaTime
+            //CAMERA.position.y -= CAMERA.speed * sin(rot.x) * deltaTime
+            CAMERA.position.z -= CAMERA.speed * -cos(rot.y) * deltaTime
             CAMERA.position.z -= CAMERA.speed * deltaTime
         }
 
         if (input.isKeyDown(GLFW_KEY_S)) {
-            //CAMERA.position.x += CAMERA.speed * sin(-CAMERA.rotation.y) * deltaTime
-            //CAMERA.position.y += CAMERA.speed * sin(-CAMERA.rotation.x) * deltaTime
-            //CAMERA.position.z += CAMERA.speed * -cos(-CAMERA.rotation.y) * deltaTime
+            CAMERA.position.x += CAMERA.speed * sin(rot.y) * deltaTime
+            //CAMERA.position.y += CAMERA.speed * sin(rot.x) * deltaTime
+            CAMERA.position.z += CAMERA.speed * -cos(rot.y) * deltaTime
             CAMERA.position.z += CAMERA.speed * deltaTime
         }
 
         if (input.isKeyDown(GLFW_KEY_A)) {
-            //CAMERA.position.z -= CAMERA.speed * sin(-CAMERA.rotation.y) * deltaTime
-            //CAMERA.position.x -= CAMERA.speed * -cos(-CAMERA.rotation.y) * deltaTime
+            CAMERA.position.z -= CAMERA.speed * sin(-rot.y) * deltaTime
+            CAMERA.position.x -= CAMERA.speed * -cos(-rot.y) * deltaTime
             CAMERA.position.x -= CAMERA.speed * deltaTime
         }
 
         if (input.isKeyDown(GLFW_KEY_D)) {
-            //CAMERA.position.z += CAMERA.speed * sin(-CAMERA.rotation.y) * deltaTime
-            //CAMERA.position.x += CAMERA.speed * -cos(-CAMERA.rotation.y) * deltaTime
+            CAMERA.position.z += CAMERA.speed * sin(-rot.y) * deltaTime
+            CAMERA.position.x += CAMERA.speed * -cos(-rot.y) * deltaTime
             CAMERA.position.x += CAMERA.speed * deltaTime
         }
 
@@ -122,8 +131,20 @@ class GameWindow(var width: Int, var height: Int, var title: String) {
         val mouseX = input.getMouseX() - width / 2
         val mouseY = input.getMouseY() - height / 2
 
-        CAMERA.rotation.rotateAxis(Math.toRadians((mouseX * CAMERA.speed * deltaTime)).toFloat(), 0f, -1f, 0f)
-        CAMERA.rotation.rotateAxis(Math.toRadians((mouseY * CAMERA.speed * deltaTime)).toFloat(), -1f, 0f, 0f)
+        val rotX = -Math.toRadians((mouseX.toFloat()).toDouble()).toFloat()
+        val rotY = -Math.toRadians((mouseY.toFloat()).toDouble()).toFloat()
+
+        camRotX += rotX
+        camRotY += rotY
+
+        //CAMERA.rotation.setAngleAxis(0f, 1f, 1f, 1f)
+        //CAMERA.rotation.setAngleAxis(-Math.toRadians(camRotX.toDouble()).toFloat(), 0f, 1f, 0f)
+        //CAMERA.rotation.setAngleAxis( CAMERA.speed * deltaTime, camRotY, camRotX, 0f)
+        //CAMERA.rotation.rotationZ(0f)
+        //CAMERA.rotation.rotationX(camRotY * CAMERA.speed * deltaTime)
+        CAMERA.rotation.rotationY(camRotX * CAMERA.speed * deltaTime)
+        //CAMERA.rotation.rotationXYZ(camRotY * CAMERA.speed * deltaTime, camRotX * CAMERA.speed * deltaTime, 0f)
+        //CAMERA.rotation.rotateAxis(-Math.toRadians(rot.z.toDouble()).toFloat(), 0f, 0f, 1f)
 
         input.setCursorPos(window, (width / 2).toDouble(), (height / 2).toDouble())
     }

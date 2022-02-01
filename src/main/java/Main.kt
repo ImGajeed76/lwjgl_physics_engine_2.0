@@ -44,7 +44,7 @@ fun main() {
 fun update() {
     testTransform.rotation.rotateAxis(Math.toRadians(1.0 * gameWindow.deltaTime).toFloat(), 0f, 1f, 0f)
     testTransform.rotation.rotateAxis(Math.toRadians(0.5 * gameWindow.deltaTime).toFloat(), 1f, 0f, 0f)
-    println(CAMERA.rotation)
+    //println(CAMERA.rotation.getEulerAnglesXYZ(Vector3f(1f, 1f, 1f)))
 
     //basicShader.useShader()
     //basicShader.setCamera(camera)
