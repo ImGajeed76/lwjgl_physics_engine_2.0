@@ -30,4 +30,36 @@ class Camera {
     fun getProjection(): Matrix4f {
         return projection
     }
+
+    fun forward(s: Float) {
+        position.z -= s
+    }
+
+    fun backwards(s: Float) {
+        position.z += s
+    }
+
+    fun left(s: Float) {
+        position.x -= s
+    }
+
+    fun right(s: Float) {
+        position.x += s
+    }
+
+    fun up(s: Float) {
+        position.y += s
+    }
+
+    fun down(s: Float) {
+        position.y -= s
+    }
+
+    fun turnHorizontal(s: Float) {
+
+    }
+
+    fun turnVertical(s: Float) {
+
+    }
 }

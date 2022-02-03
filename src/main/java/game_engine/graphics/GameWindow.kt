@@ -2,9 +2,7 @@ package game_engine.graphics
 
 import CAMERA
 import game_engine.input.Input
-import org.joml.Math.cos
-import org.joml.Math.sin
-import org.joml.Vector3f
+import game_engine.maths.FPS
 import org.joml.Vector4f
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWVidMode
@@ -19,9 +17,7 @@ class GameWindow(var width: Int, var height: Int, var title: String) {
     private var input = Input()
     private var isWindowOpen = true
 
-    var FPS = 0F
-    var frames = 0F
-    var fpsTimer: Long = System.currentTimeMillis()
+    var FPS: FPS = FPS()
     var showFpsInTitle = true
 
     var deltaTime = 1f
@@ -84,67 +80,41 @@ class GameWindow(var width: Int, var height: Int, var title: String) {
     }
 
     private fun updateDeltaTime() {
-        if (FPS > 0) {
-            deltaTime = 60 / FPS
+        if (FPS.getFPS() > 0) {
+            deltaTime = 60 / FPS.getFPS()
         }
     }
 
     fun updateCam() {
-        val rot = Vector3f()
-        rot.x = camRotY
-        rot.y = camRotX
-
         if (input.isKeyDown(GLFW_KEY_W)) {
-            CAMERA.position.x -= CAMERA.speed * sin(rot.y) * deltaTime
-            //CAMERA.position.y -= CAMERA.speed * sin(rot.x) * deltaTime
-            CAMERA.position.z -= CAMERA.speed * -cos(rot.y) * deltaTime
-            CAMERA.position.z -= CAMERA.speed * deltaTime
+            CAMERA.forward(CAMERA.speed * deltaTime)
         }
 
         if (input.isKeyDown(GLFW_KEY_S)) {
-            CAMERA.position.x += CAMERA.speed * sin(rot.y) * deltaTime
-            //CAMERA.position.y += CAMERA.speed * sin(rot.x) * deltaTime
-            CAMERA.position.z += CAMERA.speed * -cos(rot.y) * deltaTime
-            CAMERA.position.z += CAMERA.speed * deltaTime
+            CAMERA.backwards(CAMERA.speed * deltaTime)
         }
 
         if (input.isKeyDown(GLFW_KEY_A)) {
-            CAMERA.position.z -= CAMERA.speed * sin(-rot.y) * deltaTime
-            CAMERA.position.x -= CAMERA.speed * -cos(-rot.y) * deltaTime
-            CAMERA.position.x -= CAMERA.speed * deltaTime
+            CAMERA.left(CAMERA.speed * deltaTime)
         }
 
         if (input.isKeyDown(GLFW_KEY_D)) {
-            CAMERA.position.z += CAMERA.speed * sin(-rot.y) * deltaTime
-            CAMERA.position.x += CAMERA.speed * -cos(-rot.y) * deltaTime
-            CAMERA.position.x += CAMERA.speed * deltaTime
+            CAMERA.right(CAMERA.speed * deltaTime)
         }
 
         if (input.isKeyDown(GLFW_KEY_LEFT_SHIFT) || input.isKeyDown(GLFW_KEY_Q)) {
-            CAMERA.position.y -= CAMERA.speed * deltaTime
+            CAMERA.down(CAMERA.speed * deltaTime)
         }
 
         if (input.isKeyDown(GLFW_KEY_SPACE) || input.isKeyDown(GLFW_KEY_E)) {
-            CAMERA.position.y += CAMERA.speed * deltaTime
+            CAMERA.up(CAMERA.speed * deltaTime)
         }
 
         val mouseX = input.getMouseX() - width / 2
         val mouseY = input.getMouseY() - height / 2
 
-        val rotX = -Math.toRadians((mouseX.toFloat()).toDouble()).toFloat()
-        val rotY = -Math.toRadians((mouseY.toFloat()).toDouble()).toFloat()
-
-        camRotX += rotX
-        camRotY += rotY
-
-        //CAMERA.rotation.setAngleAxis(0f, 1f, 1f, 1f)
-        //CAMERA.rotation.setAngleAxis(-Math.toRadians(camRotX.toDouble()).toFloat(), 0f, 1f, 0f)
-        //CAMERA.rotation.setAngleAxis( CAMERA.speed * deltaTime, camRotY, camRotX, 0f)
-        //CAMERA.rotation.rotationZ(0f)
-        //CAMERA.rotation.rotationX(camRotY * CAMERA.speed * deltaTime)
-        CAMERA.rotation.rotationY(camRotX * CAMERA.speed * deltaTime)
-        //CAMERA.rotation.rotationXYZ(camRotY * CAMERA.speed * deltaTime, camRotX * CAMERA.speed * deltaTime, 0f)
-        //CAMERA.rotation.rotateAxis(-Math.toRadians(rot.z.toDouble()).toFloat(), 0f, 0f, 1f)
+        CAMERA.turnHorizontal(mouseX.toFloat() * CAMERA.speed * deltaTime)
+        CAMERA.turnVertical(mouseY.toFloat() * CAMERA.speed * deltaTime)
 
         input.setCursorPos(window, (width / 2).toDouble(), (height / 2).toDouble())
     }
@@ -156,15 +126,10 @@ class GameWindow(var width: Int, var height: Int, var title: String) {
     }
 
     private fun updateFPS() {
-        frames++
-        if (System.currentTimeMillis() > fpsTimer + 1000) {
-            FPS = frames
-            fpsTimer = System.currentTimeMillis()
-            frames = 0F
-        }
+        FPS.next()
 
         if (showFpsInTitle) {
-            glfwSetWindowTitle(window, "$title | FPS: $FPS")
+            glfwSetWindowTitle(window, "$title | FPS: ${FPS.getFPS()}")
         }
     }
 
