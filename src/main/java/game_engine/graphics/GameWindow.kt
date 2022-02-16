@@ -110,8 +110,8 @@ class GameWindow(var width: Int, var height: Int, var title: String) {
             CAMERA.up(CAMERA.speed * deltaTime)
         }
 
-        val mouseX = input.getMouseX() - width / 2
-        val mouseY = input.getMouseY() - height / 2
+        val mouseX = input.getMouseX() - (width / 2)
+        val mouseY = input.getMouseY() - (height / 2)
 
         CAMERA.turnHorizontal(mouseX.toFloat() * CAMERA.speed * deltaTime)
         CAMERA.turnVertical(mouseY.toFloat() * CAMERA.speed * deltaTime)

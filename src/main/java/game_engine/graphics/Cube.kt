@@ -129,6 +129,11 @@ class Cube {
         mesh.draw()
     }
 
+    fun destroy() {
+        shader.destroy()
+        mesh.destroy()
+    }
+
     private fun addVertex(a: Vector3f, b: Vector3f, c: Vector3f) {
         vertexArray.add(a.x)
         vertexArray.add(a.y)

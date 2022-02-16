@@ -4,6 +4,7 @@ import game_engine.graphics.Mesh
 import game_engine.graphics.Shader
 import game_engine.maths.Camera
 import game_engine.maths.Transform
+import org.joml.Quaternionf
 import org.joml.Vector3f
 
 val CAMERA: Camera = Camera()
@@ -18,6 +19,8 @@ val testVertexArray = floatArrayOf(
 )
 
 val basicShader = Shader()
+
+var rotY = 0.0
 
 fun main() {
     //testMesh.create(testVertexArray)
@@ -42,14 +45,15 @@ fun main() {
 }
 
 fun update() {
-    testTransform.rotation.rotateAxis(Math.toRadians(1.0 * gameWindow.deltaTime).toFloat(), 0f, 1f, 0f)
-    testTransform.rotation.rotateAxis(Math.toRadians(0.5 * gameWindow.deltaTime).toFloat(), 1f, 0f, 0f)
-    //println(CAMERA.rotation.getEulerAnglesXYZ(Vector3f(1f, 1f, 1f)))
+    //rotY += 0.1 * gameWindow.deltaTime
+    //rotY %= 360
+    //val newRot = Quaternionf(0f, Math.toRadians(rotY).toFloat(), 0f, 1f).normalize()
+    //println(newRot.mul(testTransform.rotation.normalize()).mul(newRot.conjugate()))
 
-    //basicShader.useShader()
-    //basicShader.setCamera(camera)
-    //basicShader.setTransform(testTransform)
-    //testMesh.draw()
+    //testTransform.rotation.set(newRot.mul(testTransform.rotation.normalize()).mul(newRot.conjugate()))
+
+    //testTransform.rotation.rotateAxis(Math.toRadians(1.0 * gameWindow.deltaTime).toFloat(), 0f, 1f, 0f)
+    //testTransform.rotation.rotateAxis(Math.toRadians(0.5 * gameWindow.deltaTime).toFloat(), 1f, 0f, 0f)
 
     cube.useShader()
     cube.setCamera(CAMERA)
@@ -58,6 +62,5 @@ fun update() {
 }
 
 fun destroy() {
-    basicShader.destroy()
-    testMesh.destroy()
+    cube.destroy()
 }
