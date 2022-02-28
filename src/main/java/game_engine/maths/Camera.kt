@@ -48,13 +48,31 @@ class Camera {
     }
 
     fun left(s: Float) {
-        position.x -= s * (rM * 2)
-        position.z -= s * ((1 - rM) * 2)
+        var r = 0f
+
+        if (rH > 1){
+            r = (1-rH)
+        }
+        else {
+            r = (1+rH)
+        }
+
+        position.x -= s * r
+        position.z -= s * rH
     }
 
     fun right(s: Float) {
-        position.x += s * (rM * 2)
-        position.z += s * ((1 - rM) * 2)
+        var r = 0f
+
+        if (rH > 1){
+            r = (1-rH)
+        }
+        else {
+            r = (1+rH)
+        }
+
+        position.x += s * r
+        position.z += s * rH
     }
 
     fun up(s: Float) {

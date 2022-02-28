@@ -1,8 +1,12 @@
-package game_engine.graphics
+package game_engine.graphics.objects
 
+import game_engine.graphics.Mesh
+import game_engine.graphics.Shader
 import game_engine.maths.Camera
 import game_engine.maths.Transform
+import game_engine.maths.Vertex
 import org.joml.Quaternionf
+import org.joml.Vector2f
 import org.joml.Vector3f
 
 class Cube {
@@ -11,7 +15,8 @@ class Cube {
     var rotation: Quaternionf = Quaternionf()
 
     var mesh: Mesh = Mesh()
-    var vertexArray: ArrayList<Float> = arrayListOf()
+    var vertexArray: ArrayList<Vertex> = arrayListOf()
+    var indices: ArrayList<Int> = arrayListOf()
 
     var shader: Shader = Shader()
 
@@ -82,31 +87,45 @@ class Cube {
 
         vertexArray = arrayListOf()
 
+        for (pos in corners) {
+            vertexArray.add(Vertex(pos, Vector3f(0.46666667f, 0.7176470f, 0.9215686f), Vector2f(0f, 0f)))
+        }
+
         // left
-        addVertex(corners[1], corners[3], corners[2])
-        addVertex(corners[1], corners[2], corners[0])
+        indices.addAll(arrayListOf(1, 3, 2))
+        indices.addAll(arrayListOf(1, 2, 0))
 
         // front
-        addVertex(corners[0], corners[2], corners[6])
-        addVertex(corners[0], corners[6], corners[4])
+        indices.addAll(arrayListOf(0, 2, 6))
+        indices.addAll(arrayListOf(0, 6, 4))
 
         // right
-        addVertex(corners[4], corners[6], corners[7])
-        addVertex(corners[4], corners[7], corners[5])
+        indices.addAll(arrayListOf(4, 6, 7))
+        indices.addAll(arrayListOf(4, 7, 5))
 
         // back
-        addVertex(corners[5], corners[7], corners[3])
-        addVertex(corners[5], corners[3], corners[1])
+        indices.addAll(arrayListOf(5, 7, 3))
+        indices.addAll(arrayListOf(5, 3, 1))
 
         // bottom
-        addVertex(corners[1], corners[0], corners[4])
-        addVertex(corners[1], corners[4], corners[5])
+        indices.addAll(arrayListOf(1, 0, 4))
+        indices.addAll(arrayListOf(1, 4, 5))
 
         // top
-        addVertex(corners[2], corners[3], corners[7])
-        addVertex(corners[2], corners[7], corners[6])
+        indices.addAll(arrayListOf(2, 3, 7))
+        indices.addAll(arrayListOf(2, 7, 6))
 
-        mesh.create(vertexArray.toFloatArray())
+        //color test
+        vertexArray[0].setColor(Vector3f(0f, 0f, 0f))
+        vertexArray[1].setColor(Vector3f(1f, 0f, 0f))
+        vertexArray[2].setColor(Vector3f(0f, 1f, 0f))
+        vertexArray[3].setColor(Vector3f(1f, 1f, 0f))
+        vertexArray[4].setColor(Vector3f(0f, 0f, 1f))
+        vertexArray[5].setColor(Vector3f(1f, 0f, 1f))
+        vertexArray[6].setColor(Vector3f(0f, 1f, 1f))
+        vertexArray[7].setColor(Vector3f(1f, 1f, 1f))
+
+        mesh.create(vertexArray.toTypedArray(), indices.toIntArray())
     }
 
     fun createShader(vertex_shader: String, fragment_shader: String) {
@@ -132,19 +151,5 @@ class Cube {
     fun destroy() {
         shader.destroy()
         mesh.destroy()
-    }
-
-    private fun addVertex(a: Vector3f, b: Vector3f, c: Vector3f) {
-        vertexArray.add(a.x)
-        vertexArray.add(a.y)
-        vertexArray.add(a.z)
-
-        vertexArray.add(b.x)
-        vertexArray.add(b.y)
-        vertexArray.add(b.z)
-
-        vertexArray.add(c.x)
-        vertexArray.add(c.y)
-        vertexArray.add(c.z)
     }
 }
