@@ -18,6 +18,8 @@ class Camera {
     var rV = 0f
     var rM = 0f
 
+    var fixCam = false
+
     fun setOrthographic(left: Float, right: Float, top: Float, bottom: Float) {
         projection.setOrtho2D(left, right, bottom, top)
     }
@@ -98,12 +100,14 @@ class Camera {
     }
 
     private fun updateRot() {
-        rH = clamp(rotHorizontal, 360f)
-        rV = clamp(rotVertical, 360f)
-        rM = (rH + 1) / 2 + 0.5f
+        if (!fixCam) {
+            rH = clamp(rotHorizontal, 360f)
+            rV = clamp(rotVertical, 360f)
+            rM = (rH + 1) / 2 + 0.5f
 
-        println("$rH, $rV, $rM")
-        val newRot = Quaternionf(rV * rM, rH, rV * (1 - rM), 1f)
-        rotation.set(newRot.normalize().mul(rotation.normalize()).mul(rotation.conjugate().normalize()))
+            println("$rH, $rV, $rM")
+            val newRot = Quaternionf(rV * rM, rH, rV * (1 - rM), 1f)
+            rotation.set(newRot.normalize().mul(rotation.normalize()).mul(rotation.conjugate().normalize()))
+        }
     }
 }

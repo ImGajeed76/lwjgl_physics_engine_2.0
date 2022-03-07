@@ -80,8 +80,8 @@ class GameWindow(var width: Int, var height: Int, var title: String) {
     }
 
     private fun updateDeltaTime() {
-        if (FPS.getFPS() > 0) {
-            deltaTime = 60 / FPS.getFPS()
+        if (FPS.fps > 0) {
+            deltaTime = 60 / FPS.fps
         }
     }
 
@@ -129,7 +129,7 @@ class GameWindow(var width: Int, var height: Int, var title: String) {
         FPS.next()
 
         if (showFpsInTitle) {
-            glfwSetWindowTitle(window, "$title | FPS: ${FPS.getFPS()}")
+            glfwSetWindowTitle(window, "$title | FPS: ${FPS.fps}")
         }
     }
 

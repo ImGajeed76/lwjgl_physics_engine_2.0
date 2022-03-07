@@ -1,40 +1,58 @@
 package game_engine.graphics.objects
 
+import GAMEWINDOW
 import game_engine.graphics.Mesh
 import game_engine.graphics.Shader
 import game_engine.maths.Camera
 import game_engine.maths.Transform
 import game_engine.maths.Vertex
+import org.joml.Vector3f
+import physics_engine.Physic
+import physics_engine.PhysicsObject
 
-class Triangle(var v1: Vertex, var v2: Vertex, var v3: Vertex) {
-    var mesh: Mesh = Mesh()
-    var shader: Shader = Shader()
+class Triangle(var v1: Vertex, var v2: Vertex, var v3: Vertex) : GameObject() {
+    override var mesh: Mesh = Mesh()
+    override var vertexArray: ArrayList<Vertex>  = arrayListOf()
+    override var indices: ArrayList<Int> = arrayListOf()
 
-    fun createMesh() {
-        mesh.create(arrayOf(v1, v2, v3), intArrayOf(0, 1, 2))
+    override var shader: Shader = Shader()
+
+    override var transform: Transform = Transform()
+    override var physics: ArrayList<Physic> = arrayListOf()
+    override var physicsObject: PhysicsObject = PhysicsObject()
+
+    override fun createMesh() {
+        vertexArray = arrayListOf(v1, v2, v3)
+        indices = arrayListOf(0, 1, 2)
+
+        mesh.create(vertexArray.toTypedArray(), indices.toIntArray())
     }
 
-    fun createShader(vertex_shader: String, fragment_shader: String) {
+    override fun createShader(vertex_shader: String, fragment_shader: String) {
         shader.create(vertex_shader, fragment_shader)
     }
 
-    fun setCamera(camera: Camera) {
+    override fun setCamera(camera: Camera) {
         shader.setCamera(camera)
     }
 
-    fun setTransform(transform: Transform) {
-        shader.setTransform(transform)
-    }
-
-    fun useShader() {
+    override fun useShader() {
         shader.useShader()
     }
 
-    fun draw() {
+    override fun draw() {
+        physicsObject.position = transform.position
+
+        for (physic in physics) {
+            physicsObject = physic.update(physicsObject)
+        }
+
+        transform.position = physicsObject.position
+        shader.setTransform(transform)
         mesh.draw()
     }
 
-    fun destroy() {
+    override fun destroy() {
         shader.destroy()
         mesh.destroy()
     }

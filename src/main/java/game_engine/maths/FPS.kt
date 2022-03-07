@@ -11,9 +11,10 @@ class FPS {
     private var fpsTimer2: Long = System.currentTimeMillis()
     private var fps2: Float = 0f
 
-    fun getFPS(): Float {
-        return FPS
-    }
+    val fps: Float
+        get() {
+            return FPS
+        }
 
     fun next() {
         frames1++

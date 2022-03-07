@@ -1,81 +1,65 @@
 import game_engine.graphics.objects.Cube
 import game_engine.graphics.GameWindow
-import game_engine.graphics.Mesh
-import game_engine.graphics.Shader
+import game_engine.graphics.objects.GameObject
 import game_engine.graphics.objects.Triangle
 import game_engine.maths.Camera
-import game_engine.maths.Transform
 import game_engine.maths.Vertex
 import org.joml.Vector2f
 import org.joml.Vector3f
-import kotlin.math.sin
+import physics_engine.Gravity
 
+//Const vars
+const val vertexShader = "basic_vertex.glsl"
+const val fragmentShader = "basic_fragment.glsl"
+
+// Camera and GameWindow
 val CAMERA: Camera = Camera()
+lateinit var GAMEWINDOW: GameWindow
 
+//Game Objects
 val cube = Cube(Vector3f(2f))
-val tri = Triangle(
+val triangle = Triangle(
     Vertex(Vector3f(-1F, -1F, 0F), Vector3f(1f, 0f, 0f), Vector2f(0f, 0f)),
     Vertex(Vector3f(0F, 1F, 0F), Vector3f(0f, 1f, 0f), Vector2f(0f, 0f)),
     Vertex(Vector3f(1F, -1F, 0F), Vector3f(0f, 0f, 1f), Vector2f(0f, 0f))
 )
 
-lateinit var gameWindow: GameWindow
+var gameObjects = arrayListOf<GameObject>()
 
-val vs = "lit_vertex.glsl"
-val fs = "lit_fragment.glsl"
-
-val testTransform = Transform()
-val testMesh = Mesh()
-val testVertexArray = floatArrayOf(
-    -1F, -1F, 0F, 0F, 1F, 0F, 1F, -1F, 0F
-)
-
-val basicShader = Shader()
-
-var per = 0.0
 
 fun main() {
-    //testMesh.create(testVertexArray)
-    //basicShader.create("basic_vertex.glsl", "basic_fragment.glsl")
+    CAMERA.fixCam = true
+    GAMEWINDOW = GameWindow(1000, 1000, "Physics Engine")
+    triangle.physics.add(Gravity())
 
-    gameWindow = GameWindow(1000, 1000, "Physics Engine")
+    //gameObjects.add(cube)
+    gameObjects.add(triangle)
 
-    //cube.createMesh()
-    //cube.createShader("basic_vertex.glsl", "basic_fragment.glsl")
+    for (gameObject in gameObjects) {
+        gameObject.createMesh()
+        gameObject.createShader(vertexShader, fragmentShader)
+    }
 
-    tri.createMesh()
-    tri.createShader(vs, fs)
-    testTransform.position.y = 5f
-
-    CAMERA.setPerspective(gameWindow.getFOV(70.0), gameWindow.getAspectRatio(), 0.01f, 1000f)
+    CAMERA.setPerspective(GAMEWINDOW.getFOV(70.0), GAMEWINDOW.getAspectRatio(), 0.01f, 1000f)
     CAMERA.position = Vector3f(0f, 0f, 10f)
+    CAMERA.rotation.rotateAxis(Math.toRadians(-20.0).toFloat(), Vector3f(1f, 0f, 0f))
 
-    while (gameWindow.windowOpen()) {
-        gameWindow.updateAfterLast()
+    while (GAMEWINDOW.windowOpen()) {
+        GAMEWINDOW.updateAfterLast()
         update()
-        gameWindow.updateBeforeNext()
+        GAMEWINDOW.updateBeforeNext()
     }
 
     destroy()
-    gameWindow.terminate()
+    GAMEWINDOW.terminate()
 }
 
 fun update() {
-    testTransform.rotation.rotateAxis(Math.toRadians(1.0 * gameWindow.deltaTime).toFloat(), 0f, 1f, 0f)
-    testTransform.rotation.rotateAxis(Math.toRadians(0.5 * gameWindow.deltaTime).toFloat(), 1f, 0f, 0f)
-
-    per += 0.01f * gameWindow.deltaTime
-    testTransform.position.y = (sin(per).toFloat())
-
-    //cube.useShader()
-    //cube.setCamera(CAMERA)
-    //cube.setTransform(testTransform)
-    //cube.draw()
-
-    tri.useShader()
-    tri.setCamera(CAMERA)
-    tri.setTransform(testTransform)
-    tri.draw()
+    for (gameObject in gameObjects) {
+        gameObject.useShader()
+        gameObject.setCamera(CAMERA)
+        gameObject.draw()
+    }
 }
 
 fun destroy() {

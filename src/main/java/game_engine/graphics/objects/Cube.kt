@@ -8,18 +8,23 @@ import game_engine.maths.Vertex
 import org.joml.Quaternionf
 import org.joml.Vector2f
 import org.joml.Vector3f
+import physics_engine.Physic
+import physics_engine.PhysicsObject
 
-class Cube {
+class Cube : GameObject {
     var size: Vector3f = Vector3f()
     var position: Vector3f = Vector3f()
     var rotation: Quaternionf = Quaternionf()
 
-    var mesh: Mesh = Mesh()
-    var vertexArray: ArrayList<Vertex> = arrayListOf()
-    var indices: ArrayList<Int> = arrayListOf()
+    override var mesh: Mesh = Mesh()
+    override var vertexArray: ArrayList<Vertex> = arrayListOf()
+    override var indices: ArrayList<Int> = arrayListOf()
 
-    var shader: Shader = Shader()
+    override var shader: Shader = Shader()
 
+    override var transform: Transform = Transform()
+    override var physics: ArrayList<Physic> = arrayListOf()
+    override var physicsObject: PhysicsObject = PhysicsObject()
 
     constructor(size: Vector3f) {
         this.size = size
@@ -37,7 +42,7 @@ class Cube {
         this.rotation = rotation
     }
 
-    fun createMesh() {
+    override fun createMesh() {
         val halfWidth = size.x / 2
         val halfHeight = size.y / 2
         val halfDepth = size.z / 2
@@ -128,27 +133,31 @@ class Cube {
         mesh.create(vertexArray.toTypedArray(), indices.toIntArray())
     }
 
-    fun createShader(vertex_shader: String, fragment_shader: String) {
+    override fun createShader(vertex_shader: String, fragment_shader: String) {
         shader.create(vertex_shader, fragment_shader)
     }
 
-    fun setCamera(camera: Camera) {
+    override fun setCamera(camera: Camera) {
         shader.setCamera(camera)
     }
 
-    fun setTransform(transform: Transform) {
-        shader.setTransform(transform)
-    }
-
-    fun useShader() {
+    override fun useShader() {
         shader.useShader()
     }
 
-    fun draw() {
+    override fun draw() {
+        physicsObject.position = transform.position
+
+        for (physic in physics) {
+            physicsObject = physic.update(physicsObject)
+        }
+
+        transform.position = physicsObject.position
+        shader.setTransform(transform)
         mesh.draw()
     }
 
-    fun destroy() {
+    override fun destroy() {
         shader.destroy()
         mesh.destroy()
     }
