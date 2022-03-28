@@ -142,10 +142,10 @@ class Cube : GameObject {
     }
 
     override fun useShader() {
-        shader.useShader()
+        shader.bind()
     }
 
-    override fun draw() {
+    override fun updatePhysics(others: ArrayList<GameObject>) {
         physicsObject.position = transform.position
 
         for (physic in physics) {
@@ -153,6 +153,9 @@ class Cube : GameObject {
         }
 
         transform.position = physicsObject.position
+    }
+
+    override fun draw() {
         shader.setTransform(transform)
         mesh.draw()
     }

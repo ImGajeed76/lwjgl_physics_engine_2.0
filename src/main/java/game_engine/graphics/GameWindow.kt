@@ -1,6 +1,7 @@
 package game_engine.graphics
 
 import CAMERA
+import game_engine.graphics.objects.GameObject
 import game_engine.input.Input
 import game_engine.maths.FPS
 import org.joml.Vector4f
@@ -20,10 +21,17 @@ class GameWindow(var width: Int, var height: Int, var title: String) {
     var FPS: FPS = FPS()
     var showFpsInTitle = true
 
-    var deltaTime = 1f
+    var deltaTime: Double = 0.001
+    var lastDTCheck: Long = System.nanoTime()
+    var dtScale: Double = 1.0
 
     var camRotX = 0f
     var camRotY = 0f
+
+    // Physics
+    var physDT: Double = 0.001
+    var physUpdatesPerFrame: Int = 100
+    var physDtScale: Double = 0.000000006
 
     init {
         if (!glfwInit()) {
@@ -42,6 +50,10 @@ class GameWindow(var width: Int, var height: Int, var title: String) {
         }
         glfwMakeContextCurrent(window)
         GL.createCapabilities()
+
+        //glEnable(GL_CULL_FACE)
+        glEnable(GL_DEPTH_TEST)
+        glDepthMask(true)
 
         videoMode = glfwGetVideoMode(glfwGetPrimaryMonitor())
         if (videoMode == null) {
@@ -75,17 +87,27 @@ class GameWindow(var width: Int, var height: Int, var title: String) {
         updateCam()
         glfwPollEvents()
 
-        glClear(GL_COLOR_BUFFER_BIT)
+        glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
         glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w)
     }
 
     private fun updateDeltaTime() {
-        if (FPS.fps > 0) {
-            deltaTime = 60 / FPS.fps
+        val current = System.nanoTime()
+        val dif = current - lastDTCheck
+        lastDTCheck = current
+
+        deltaTime = (dif * dtScale) / 1000000
+
+        if (deltaTime > 10) {
+            deltaTime = 10.0
         }
+
+        physDT = (deltaTime / physUpdatesPerFrame) * physDtScale
     }
 
-    fun updateCam() {
+    private fun updateCam() {
+        input.setCursorPos(window, (width / 2).toDouble(), (height / 2).toDouble())
+
         if (input.isKeyDown(GLFW_KEY_W)) {
             CAMERA.forward(CAMERA.speed * deltaTime)
         }
@@ -115,8 +137,6 @@ class GameWindow(var width: Int, var height: Int, var title: String) {
 
         CAMERA.turnHorizontal(mouseX.toFloat() * CAMERA.speed * deltaTime)
         CAMERA.turnVertical(mouseY.toFloat() * CAMERA.speed * deltaTime)
-
-        input.setCursorPos(window, (width / 2).toDouble(), (height / 2).toDouble())
     }
 
     private fun checkExit() {
@@ -147,5 +167,13 @@ class GameWindow(var width: Int, var height: Int, var title: String) {
 
     fun getFOV(deg: Double): Float {
         return Math.toRadians(deg).toFloat()
+    }
+
+    fun drawObjects(objects: ArrayList<GameObject>) {
+        for (gameObject in objects) {
+            gameObject.useShader()
+            gameObject.setCamera(CAMERA)
+            gameObject.draw()
+        }
     }
 }

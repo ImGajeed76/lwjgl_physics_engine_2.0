@@ -6,13 +6,13 @@ import org.joml.Vector3f
 
 class Camera {
     var position: Vector3f = Vector3f()
-    var rotation: Quaternionf = Quaternionf()
+    var rotation: Quaternionf = Quaternionf(-1.160E-2, -6.004E-3, -3.494E-5, 9.999E-1)
     private var projection: Matrix4f = Matrix4f()
-    var speed: Float = 0.2F
-    var sensitivity: Float = 1f
+    var speed: Float = 0.009F
+    var sensitivity: Float = 2f
 
-    private var rotHorizontal = 0f
-    private var rotVertical = 0f
+    private var rotHorizontal = 540f - (1170 - 540)
+    private var rotVertical = 540f - (1170 - 540)
 
     var rH = 0f
     var rV = 0f
@@ -41,15 +41,15 @@ class Camera {
         return projection
     }
 
-    fun forward(s: Float) {
-        position.z -= s
+    fun forward(s: Double) {
+        position.z -= s.toFloat()
     }
 
-    fun backwards(s: Float) {
-        position.z += s
+    fun backwards(s: Double) {
+        position.z += s.toFloat()
     }
 
-    fun left(s: Float) {
+    fun left(s: Double) {
         var r = 0f
 
         if (rH > 1){
@@ -59,11 +59,11 @@ class Camera {
             r = (1+rH)
         }
 
-        position.x -= s * r
-        position.z -= s * rH
+        position.x -= s.toFloat() * r
+        position.z -= s.toFloat() * rH
     }
 
-    fun right(s: Float) {
+    fun right(s: Double) {
         var r = 0f
 
         if (rH > 1){
@@ -73,26 +73,26 @@ class Camera {
             r = (1+rH)
         }
 
-        position.x += s * r
-        position.z += s * rH
+        position.x += s.toFloat() * r
+        position.z += s.toFloat() * rH
     }
 
-    fun up(s: Float) {
-        position.y += s
+    fun up(s: Double) {
+        position.y += s.toFloat()
     }
 
-    fun down(s: Float) {
-        position.y -= s
+    fun down(s: Double) {
+        position.y -= s.toFloat()
     }
 
-    fun turnHorizontal(s: Float) {
-        rotHorizontal -= s * sensitivity * 7
+    fun turnHorizontal(s: Double) {
         updateRot()
+        rotHorizontal -= s.toFloat() * sensitivity * 7
     }
 
-    fun turnVertical(s: Float) {
-        rotVertical -= s * sensitivity * 7
+    fun turnVertical(s: Double) {
         updateRot()
+        rotVertical -= s.toFloat() * sensitivity * 7
     }
 
     private fun clamp(value: Float, max_value: Float): Float {
@@ -101,11 +101,13 @@ class Camera {
 
     private fun updateRot() {
         if (!fixCam) {
+            // println("$rotHorizontal, $rotVertical")
+
             rH = clamp(rotHorizontal, 360f)
             rV = clamp(rotVertical, 360f)
             rM = (rH + 1) / 2 + 0.5f
 
-            println("$rH, $rV, $rM")
+            // println("$rH, $rV, $rM")
             val newRot = Quaternionf(rV * rM, rH, rV * (1 - rM), 1f)
             rotation.set(newRot.normalize().mul(rotation.normalize()).mul(rotation.conjugate().normalize()))
         }

@@ -70,8 +70,12 @@ class Shader {
         glDeleteProgram(programm)
     }
 
-    fun useShader() {
+    fun bind() {
         glUseProgram(programm)
+    }
+
+    fun unbind() {
+        glUseProgram(0)
     }
 
     fun setCamera(camera: Camera) {

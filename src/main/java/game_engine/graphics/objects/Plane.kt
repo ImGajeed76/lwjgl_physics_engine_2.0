@@ -5,40 +5,37 @@ import game_engine.graphics.Shader
 import game_engine.maths.Camera
 import game_engine.maths.Transform
 import game_engine.maths.Vertex
+import org.joml.Vector2f
 import org.joml.Vector3f
 import physics_engine.Physic
 import physics_engine.PhysicsObject
 
-class Triangle(var v1: Vertex, var v2: Vertex, var v3: Vertex, pos: Vector3f = Vector3f(0f), var doubleSite: Boolean = false, flip: Boolean = false) : GameObject() {
+class Plane(pos: Vector3f, radius: Float) : GameObject() {
     override var mesh: Mesh = Mesh()
-    override var vertexArray: ArrayList<Vertex>  = arrayListOf()
+    override var vertexArray: ArrayList<Vertex> = arrayListOf()
     override var indices: ArrayList<Int> = arrayListOf()
 
     override var shader: Shader = Shader()
-
     override var transform: Transform = Transform()
     override var physics: ArrayList<Physic> = arrayListOf()
     override var physicsObject: PhysicsObject = PhysicsObject()
 
-    private var order = arrayListOf(v1, v2, v3)
-
     init {
-        transform.position = pos
+        val p1 = Vector3f(pos.x - radius, pos.y, pos.z - radius)
+        val p2 = Vector3f(pos.x - radius, pos.y, pos.z + radius)
+        val p3 = Vector3f(pos.x + radius, pos.y, pos.z + radius)
+        val p4 = Vector3f(pos.x + radius, pos.y, pos.z - radius)
 
-        if (flip) {
-            order = order.reversed() as ArrayList<Vertex>
-        }
+        vertexArray.add(Vertex(p1, p1, Vector2f(0f)))
+        vertexArray.add(Vertex(p2, p2, Vector2f(0f)))
+        vertexArray.add(Vertex(p3, p3, Vector2f(0f)))
+        vertexArray.add(Vertex(p4, p4, Vector2f(0f)))
+
+        indices.addAll(arrayListOf(1, 2, 0))
+        indices.addAll(arrayListOf(1, 3, 2))
     }
 
     override fun createMesh() {
-        vertexArray = order
-        indices = arrayListOf(0, 1, 2)
-
-        if (doubleSite) {
-            indices.addAll(arrayListOf(0, 1, 2))
-            vertexArray.addAll(order.reversed() as ArrayList<Vertex>)
-        }
-
         mesh.create(vertexArray.toTypedArray(), indices.toIntArray())
     }
 

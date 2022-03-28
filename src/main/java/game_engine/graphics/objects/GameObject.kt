@@ -5,7 +5,6 @@ import game_engine.graphics.Shader
 import game_engine.maths.Camera
 import game_engine.maths.Transform
 import game_engine.maths.Vertex
-import org.joml.Vector3f
 import physics_engine.Physic
 import physics_engine.PhysicsObject
 
@@ -24,6 +23,7 @@ abstract class GameObject {
     abstract fun createShader(vertex_shader: String, fragment_shader: String)
     abstract fun setCamera(camera: Camera)
     abstract fun useShader()
+    abstract fun updatePhysics(others: ArrayList<GameObject>)
     abstract fun draw()
     abstract fun destroy()
 }
