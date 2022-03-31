@@ -42,9 +42,9 @@ fun main() {
 
     //gameObjects.add(triangle)
     //gameObjects.add(ground)
-    //gameObjects.add(customObject)
+    gameObjects.add(customObject)
     //gameObjects.add(cube)
-    gameObjects.add(plane)
+    //gameObjects.add(plane)
 
     for (gameObject in gameObjects) {
         gameObject.createMesh()

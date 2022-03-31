@@ -3,6 +3,7 @@ package game_engine.graphics.objects
 import game_engine.graphics.Mesh
 import game_engine.graphics.Shader
 import game_engine.maths.Camera
+import game_engine.maths.Face
 import game_engine.maths.Transform
 import game_engine.maths.Vertex
 import org.joml.Vector2f
@@ -13,7 +14,7 @@ import physics_engine.PhysicsObject
 class Plane(pos: Vector3f, radius: Float) : GameObject() {
     override var mesh: Mesh = Mesh()
     override var vertexArray: ArrayList<Vertex> = arrayListOf()
-    override var indices: ArrayList<Int> = arrayListOf()
+    override var faces: ArrayList<Face> = arrayListOf()
 
     override var shader: Shader = Shader()
     override var transform: Transform = Transform()

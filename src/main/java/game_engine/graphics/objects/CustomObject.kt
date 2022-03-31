@@ -4,6 +4,7 @@ import game_engine.graphics.Mesh
 import game_engine.graphics.Model
 import game_engine.graphics.Shader
 import game_engine.maths.Camera
+import game_engine.maths.Face
 import game_engine.maths.Transform
 import game_engine.maths.Vertex
 import org.joml.Vector2f
@@ -15,7 +16,7 @@ class CustomObject(model: Model, pos: Vector3f = Vector3f(0f)) : GameObject() {
 
     override var mesh: Mesh = Mesh()
     override var vertexArray: ArrayList<Vertex> = arrayListOf()
-    override var indices: ArrayList<Int> = arrayListOf()
+    override var faces: ArrayList<Face> = arrayListOf()
 
     override var shader: Shader = Shader()
     override var transform: Transform = Transform()
@@ -23,17 +24,17 @@ class CustomObject(model: Model, pos: Vector3f = Vector3f(0f)) : GameObject() {
     override var physicsObject: PhysicsObject = PhysicsObject()
 
     init {
-        indices = model.indices
 
         for (vertex in model.vertices) {
-            vertexArray.add(Vertex(vertex, vertex, Vector2f(0f)))
+            vertexArray.add(Vertex(vertex, vertex))
         }
 
         transform.position = pos
     }
 
     override fun createMesh() {
-        mesh.create(vertexArray.toTypedArray(), indices.toIntArray())
+        mesh.loadVertices(vertexArray, faces)
+        mesh.create()
     }
 
     override fun createShader(vertex_shader: String, fragment_shader: String) {
