@@ -18,15 +18,15 @@ lateinit var GAMEWINDOW: GameWindow
 //Game Objects
 val cube = Cube(Vector3f(2f))
 val triangle = Triangle(
-    Vertex(Vector3f(-1F, -1F, 0F), Vector3f(1f, 0f, 0f), Vector2f(0f, 0f)),
-    Vertex(Vector3f(0F, 1F, 0F), Vector3f(0f, 1f, 0f), Vector2f(0f, 0f)),
-    Vertex(Vector3f(1F, -1F, 0F), Vector3f(0f, 0f, 1f), Vector2f(0f, 0f)),
+    Vertex(Vector3f(-1F, -1F, 0F), Vector3f(1f, 0f, 0f)),
+    Vertex(Vector3f(0F, 1F, 0F), Vector3f(0f, 1f, 0f)),
+    Vertex(Vector3f(1F, -1F, 0F), Vector3f(0f, 0f, 1f)),
     doubleSite = true
 )
 val ground = Triangle(
-    Vertex(Vector3f(-10f, -5.5f, -5f), Vector3f(0.4f, 0.4f, 0.4f), Vector2f(0f, 0f)),
-    Vertex(Vector3f(10f, -5.5f, -5f), Vector3f(0.4f, 0.4f, 0.4f), Vector2f(0f, 0f)),
-    Vertex(Vector3f(0f, -5.5f, 5f), Vector3f(0.4f, 0.4f, 0.4f), Vector2f(0f, 0f)),
+    Vertex(Vector3f(-10f, -5.5f, -5f), Vector3f(0.4f, 0.4f, 0.4f)),
+    Vertex(Vector3f(10f, -5.5f, -5f), Vector3f(0.4f, 0.4f, 0.4f)),
+    Vertex(Vector3f(0f, -5.5f, 5f), Vector3f(0.4f, 0.4f, 0.4f)),
     flip = true
 )
 val customObject = CustomObject(Loader().loadOBJ("plane"))

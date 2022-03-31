@@ -3,6 +3,7 @@ package game_engine.graphics.objects
 import game_engine.graphics.Mesh
 import game_engine.graphics.Shader
 import game_engine.maths.Camera
+import game_engine.maths.Face
 import game_engine.maths.Transform
 import game_engine.maths.Vertex
 import org.joml.Quaternionf
@@ -18,7 +19,7 @@ class Cube : GameObject {
 
     override var mesh: Mesh = Mesh()
     override var vertexArray: ArrayList<Vertex> = arrayListOf()
-    override var indices: ArrayList<Int> = arrayListOf()
+    override var faces: ArrayList<Face> = arrayListOf()
 
     override var shader: Shader = Shader()
 
@@ -93,32 +94,32 @@ class Cube : GameObject {
         vertexArray = arrayListOf()
 
         for (pos in corners) {
-            vertexArray.add(Vertex(pos, Vector3f(0.46666667f, 0.7176470f, 0.9215686f), Vector2f(0f, 0f)))
+            vertexArray.add(Vertex(pos, Vector3f(0.46666667f, 0.7176470f, 0.9215686f)))
         }
 
         // left
-        indices.addAll(arrayListOf(1, 3, 2))
-        indices.addAll(arrayListOf(1, 2, 0))
+        // indices.addAll(arrayListOf(1, 3, 2))
+        // indices.addAll(arrayListOf(1, 2, 0))
 
         // front
-        indices.addAll(arrayListOf(0, 2, 6))
-        indices.addAll(arrayListOf(0, 6, 4))
+        // indices.addAll(arrayListOf(0, 2, 6))
+        // indices.addAll(arrayListOf(0, 6, 4))
 
         // right
-        indices.addAll(arrayListOf(4, 6, 7))
-        indices.addAll(arrayListOf(4, 7, 5))
+        // indices.addAll(arrayListOf(4, 6, 7))
+        // indices.addAll(arrayListOf(4, 7, 5))
 
         // back
-        indices.addAll(arrayListOf(5, 7, 3))
-        indices.addAll(arrayListOf(5, 3, 1))
+        // indices.addAll(arrayListOf(5, 7, 3))
+        // indices.addAll(arrayListOf(5, 3, 1))
 
         // bottom
-        indices.addAll(arrayListOf(1, 0, 4))
-        indices.addAll(arrayListOf(1, 4, 5))
+        // indices.addAll(arrayListOf(1, 0, 4))
+        // indices.addAll(arrayListOf(1, 4, 5))
 
         // top
-        indices.addAll(arrayListOf(2, 3, 7))
-        indices.addAll(arrayListOf(2, 7, 6))
+        // indices.addAll(arrayListOf(2, 3, 7))
+        // indices.addAll(arrayListOf(2, 7, 6))
 
         //color test
         vertexArray[0].setColor(Vector3f(0f, 0f, 0f))
@@ -130,7 +131,8 @@ class Cube : GameObject {
         vertexArray[6].setColor(Vector3f(0f, 1f, 1f))
         vertexArray[7].setColor(Vector3f(1f, 1f, 1f))
 
-        mesh.create(vertexArray.toTypedArray(), indices.toIntArray())
+        mesh.loadVertices(vertexArray, faces)
+        mesh.create()
     }
 
     override fun createShader(vertex_shader: String, fragment_shader: String) {

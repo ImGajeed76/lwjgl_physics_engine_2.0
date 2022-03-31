@@ -2,10 +2,7 @@ package game_engine.graphics.objects
 
 import game_engine.graphics.Mesh
 import game_engine.graphics.Shader
-import game_engine.maths.Camera
-import game_engine.maths.Face
-import game_engine.maths.Transform
-import game_engine.maths.Vertex
+import game_engine.maths.*
 import org.joml.Vector2f
 import org.joml.Vector3f
 import physics_engine.Physic
@@ -27,17 +24,17 @@ class Plane(pos: Vector3f, radius: Float) : GameObject() {
         val p3 = Vector3f(pos.x + radius, pos.y, pos.z + radius)
         val p4 = Vector3f(pos.x + radius, pos.y, pos.z - radius)
 
-        vertexArray.add(Vertex(p1, p1, Vector2f(0f)))
-        vertexArray.add(Vertex(p2, p2, Vector2f(0f)))
-        vertexArray.add(Vertex(p3, p3, Vector2f(0f)))
-        vertexArray.add(Vertex(p4, p4, Vector2f(0f)))
+        vertexArray.add(Vertex(p1, p1))
+        vertexArray.add(Vertex(p2, p2))
+        vertexArray.add(Vertex(p3, p3))
+        vertexArray.add(Vertex(p4, p4))
 
-        indices.addAll(arrayListOf(1, 2, 0))
-        indices.addAll(arrayListOf(1, 3, 2))
+        faces.addVertexIndices(arrayListOf(1, 2, 0, 1, 3, 2))
     }
 
     override fun createMesh() {
-        mesh.create(vertexArray.toTypedArray(), indices.toIntArray())
+        mesh.loadVertices(vertexArray, faces)
+        mesh.create()
     }
 
     override fun createShader(vertex_shader: String, fragment_shader: String) {

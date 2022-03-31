@@ -3,10 +3,7 @@ package game_engine.graphics.objects
 import game_engine.graphics.Mesh
 import game_engine.graphics.Model
 import game_engine.graphics.Shader
-import game_engine.maths.Camera
-import game_engine.maths.Face
-import game_engine.maths.Transform
-import game_engine.maths.Vertex
+import game_engine.maths.*
 import org.joml.Vector2f
 import org.joml.Vector3f
 import physics_engine.Physic
@@ -24,6 +21,7 @@ class CustomObject(model: Model, pos: Vector3f = Vector3f(0f)) : GameObject() {
     override var physicsObject: PhysicsObject = PhysicsObject()
 
     init {
+        faces.addVertexIndices(model.indices)
 
         for (vertex in model.vertices) {
             vertexArray.add(Vertex(vertex, vertex))

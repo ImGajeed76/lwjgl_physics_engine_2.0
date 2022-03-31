@@ -10,7 +10,6 @@ import org.lwjgl.opengl.GL30.*
 import org.lwjgl.system.MemoryUtil
 import org.lwjgl.system.MemoryUtil.memFree
 import java.nio.FloatBuffer
-import java.util.*
 import kotlin.collections.ArrayList
 
 class Mesh {
@@ -26,11 +25,17 @@ class Mesh {
     var textures: ArrayList<Vector2f> = arrayListOf()
 
     fun loadVertices(vertices: ArrayList<Vertex>, faces: ArrayList<Face>) {
+        println(vertices.size)
+        println(faces.size)
+
         for (i in 0 until faces.size) {
             this.vertices.add(vertices[faces[i].vertex.x.toInt()].getPosition())
             this.vertices.add(vertices[faces[i].vertex.y.toInt()].getPosition())
             this.vertices.add(vertices[faces[i].vertex.z.toInt()].getPosition())
         }
+
+        println("Info: Vertices Loaded")
+        println(this.vertices)
     }
 
     fun create(): Boolean {
@@ -41,7 +46,7 @@ class Mesh {
 
 
         val verticesBuffer: FloatBuffer = MemoryUtil.memAllocFloat(vertices.size * 3)
-        val verticesArray: FloatArray = FloatArray(vertices.size * 3)
+        val verticesArray = FloatArray(vertices.size * 3)
 
         for (i in 0 until vertices.size) {
             verticesArray[i * 3] = vertices[i].x
@@ -49,6 +54,7 @@ class Mesh {
             verticesArray[i * 3 + 2] = vertices[i].z
         }
 
+        println(verticesArray.toPrintable())
         verticesBuffer.put(verticesArray).flip()
 
         vao = glGenVertexArrays()
@@ -57,7 +63,6 @@ class Mesh {
         vbo = glGenBuffers()
         glBindBuffer(GL_ARRAY_BUFFER, vbo)
         GL15.glBufferData(GL_ARRAY_BUFFER, verticesBuffer, GL_STATIC_DRAW)
-        memFree(verticesBuffer)
 
         GL20.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0)
 
@@ -86,4 +91,14 @@ class Mesh {
         glDisableVertexAttribArray(0)
         glBindVertexArray(0)
     }
+}
+
+private fun FloatArray.toPrintable(): String {
+    val out = arrayListOf<Float>()
+
+    for (f in this) {
+        out.add(f)
+    }
+
+    return out.toString()
 }

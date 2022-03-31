@@ -2,9 +2,7 @@ package game_engine.graphics.objects
 
 import game_engine.graphics.Mesh
 import game_engine.graphics.Shader
-import game_engine.maths.Camera
-import game_engine.maths.Transform
-import game_engine.maths.Vertex
+import game_engine.maths.*
 import org.joml.Vector3f
 import physics_engine.Physic
 import physics_engine.PhysicsObject
@@ -12,7 +10,7 @@ import physics_engine.PhysicsObject
 class Triangle(var v1: Vertex, var v2: Vertex, var v3: Vertex, pos: Vector3f = Vector3f(0f), var doubleSite: Boolean = false, flip: Boolean = false) : GameObject() {
     override var mesh: Mesh = Mesh()
     override var vertexArray: ArrayList<Vertex>  = arrayListOf()
-    override var indices: ArrayList<Int> = arrayListOf()
+    override var faces: ArrayList<Face> = arrayListOf()
 
     override var shader: Shader = Shader()
 
@@ -32,14 +30,15 @@ class Triangle(var v1: Vertex, var v2: Vertex, var v3: Vertex, pos: Vector3f = V
 
     override fun createMesh() {
         vertexArray = order
-        indices = arrayListOf(0, 1, 2)
+        faces.addVertexIndices(arrayListOf(0, 1, 2))
 
         if (doubleSite) {
-            indices.addAll(arrayListOf(0, 1, 2))
+            faces = Face().addVertexIndices(faces, arrayListOf(0, 1, 2))
             vertexArray.addAll(order.reversed() as ArrayList<Vertex>)
         }
 
-        mesh.create(vertexArray.toTypedArray(), indices.toIntArray())
+        mesh.loadVertices(vertexArray, faces)
+        mesh.create()
     }
 
     override fun createShader(vertex_shader: String, fragment_shader: String) {
