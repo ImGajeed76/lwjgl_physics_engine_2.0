@@ -16,35 +16,26 @@ val CAMERA: Camera = Camera()
 lateinit var GAMEWINDOW: GameWindow
 
 //Game Objects
-val cube = Cube(Vector3f(2f))
-val triangle = Triangle(
-    Vertex(Vector3f(-1F, -1F, 0F), Vector3f(1f, 0f, 0f)),
-    Vertex(Vector3f(0F, 1F, 0F), Vector3f(0f, 1f, 0f)),
-    Vertex(Vector3f(1F, -1F, 0F), Vector3f(0f, 0f, 1f)),
-    doubleSite = true
-)
-val ground = Triangle(
-    Vertex(Vector3f(-10f, -5.5f, -5f), Vector3f(0.4f, 0.4f, 0.4f)),
-    Vertex(Vector3f(10f, -5.5f, -5f), Vector3f(0.4f, 0.4f, 0.4f)),
-    Vertex(Vector3f(0f, -5.5f, 5f), Vector3f(0.4f, 0.4f, 0.4f)),
-    flip = true
-)
-val customObject = CustomObject(Loader().loadOBJ("monkey"))
-val plane = Plane(Vector3f(0.5f), 2f)
+val torus = OBJ("torus")
+val monkey = OBJ("monkey")
+val plane = OBJ("plane")
+val cube = OBJ("cube")
 
 var gameObjects = arrayListOf<GameObject>()
 
 
 fun main() {
     CAMERA.fixCam = false
-    GAMEWINDOW = GameWindow(1000, 1000, "Physics Engine")
-    triangle.physics.add(Gravity())
+    GAMEWINDOW = GameWindow(1500, 1000, "Physics Engine")
 
-    //gameObjects.add(triangle)
-    //gameObjects.add(ground)
-    gameObjects.add(customObject)
-    //gameObjects.add(cube)
-    //gameObjects.add(plane)
+    monkey.obj.physics.add(Gravity())
+
+    plane.obj.transform.position.y = -6f
+    plane.obj.transform.scale.x = 2f
+    plane.obj.transform.scale.z= 2f
+
+    gameObjects.add(monkey.obj)
+    gameObjects.add(plane.obj)
 
     for (gameObject in gameObjects) {
         gameObject.createMesh()
@@ -53,7 +44,6 @@ fun main() {
 
     CAMERA.setPerspective(GAMEWINDOW.getFOV(70.0), GAMEWINDOW.getAspectRatio(), 0.01f, 1000f)
     CAMERA.position = Vector3f(0f, 2f, 10f)
-    CAMERA.rotation.rotateAxis(Math.toRadians(-0.0).toFloat(), Vector3f(1f, 0f, 0f))
 
     while (GAMEWINDOW.windowOpen()) {
         GAMEWINDOW.updateAfterLast()
@@ -73,6 +63,10 @@ fun update() {
     gameObjects[0].transform.rotation.rotateAxis(Math.toRadians(0.1 * GAMEWINDOW.deltaTime).toFloat(), 0f, 1f, 0f)
 
 
+    if (gameObjects[0].physicsObject.position.y < -6) {
+        gameObjects[0].physicsObject.velocity.y *= -1
+    }
+
     // println(".... DT: ${GAMEWINDOW.deltaTime}")
     // println("Phys DT: ${GAMEWINDOW.physDT}")
 }
@@ -86,5 +80,7 @@ fun updatePhysics() {
 }
 
 fun destroy() {
-    cube.destroy()
+    for (gameObject in gameObjects) {
+        gameObject.destroy()
+    }
 }

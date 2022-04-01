@@ -12,7 +12,6 @@ uniform mat4 cameraProjection;
 
 
 void main() {
-    //passColor = vec3(0.4666666666, 0.7176470, 0.9215686);
     passColor = color;
     gl_Position = cameraProjection * transformWorld * transformObject * vec4(position, 1);
 }

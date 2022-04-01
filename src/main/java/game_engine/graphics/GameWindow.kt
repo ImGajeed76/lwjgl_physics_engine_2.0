@@ -66,7 +66,6 @@ class GameWindow(var width: Int, var height: Int, var title: String) {
 
         createCallbacks()
         input.setCursorPos(window, (width / 2).toDouble(), (height / 2).toDouble())
-        CAMERA.rotation.setAngleAxis(0f, 1f, 1f, 1f)
     }
 
     private fun createCallbacks() {
@@ -135,8 +134,7 @@ class GameWindow(var width: Int, var height: Int, var title: String) {
         val mouseX = input.getMouseX() - (width / 2)
         val mouseY = input.getMouseY() - (height / 2)
 
-        CAMERA.turnHorizontal(mouseX.toFloat() * CAMERA.speed * deltaTime)
-        CAMERA.turnVertical(mouseY.toFloat() * CAMERA.speed * deltaTime)
+        CAMERA.moveRotation(mouseX.toFloat() * CAMERA.speed * deltaTime, mouseY.toFloat() * CAMERA.speed * deltaTime)
     }
 
     private fun checkExit() {

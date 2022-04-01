@@ -1,12 +1,15 @@
 package game_engine.maths
 
 import org.joml.Matrix4f
-import org.joml.Quaternionf
 import org.joml.Vector3f
+import kotlin.math.cos
+import kotlin.math.sin
 
 class Camera {
     var position: Vector3f = Vector3f()
-    var rotation: Quaternionf = Quaternionf(-1.160E-2, -6.004E-3, -3.494E-5, 9.999E-1)
+    var rotation: Vector3f = Vector3f()
+    var rotationRad: Vector3f = Vector3f()
+
     private var projection: Matrix4f = Matrix4f()
     var speed: Float = 0.009F
     var sensitivity: Float = 2f
@@ -20,6 +23,9 @@ class Camera {
 
     var fixCam = false
 
+    private var offsetPos = Vector3f(0f)
+    private var offsetRot = Vector3f(0f)
+
     fun setOrthographic(left: Float, right: Float, top: Float, bottom: Float) {
         projection.setOrtho2D(left, right, bottom, top)
     }
@@ -31,7 +37,9 @@ class Camera {
     fun getTransformation(): Matrix4f {
         val result = Matrix4f()
 
-        result.rotate(rotation.conjugate(Quaternionf()))
+        result.rotate(Math.toRadians(rotation.x.toDouble()).toFloat(), Vector3f(1f, 0f, 0f))
+        result.rotate(Math.toRadians(rotation.y.toDouble()).toFloat(), Vector3f(0f, 1f, 0f))
+
         result.translate(position.mul(-1f, Vector3f()))
 
         return result
@@ -42,39 +50,25 @@ class Camera {
     }
 
     fun forward(s: Double) {
-        position.z -= s.toFloat()
+        position.x += sin(rotationRad.y) * s.toFloat()
+        position.z += -cos(rotationRad.y) * s.toFloat()
+        position.y += -sin(rotationRad.x) * s.toFloat()
     }
 
     fun backwards(s: Double) {
-        position.z += s.toFloat()
+        position.x -= sin(rotationRad.y) * s.toFloat()
+        position.z -= -cos(rotationRad.y) * s.toFloat()
+        position.y -= -sin(rotationRad.x) * s.toFloat()
     }
 
     fun left(s: Double) {
-        var r = 0f
-
-        if (rH > 1){
-            r = (1-rH)
-        }
-        else {
-            r = (1+rH)
-        }
-
-        position.x -= s.toFloat() * r
-        position.z -= s.toFloat() * rH
+        position.z -= sin(rotationRad.y) * s.toFloat()
+        position.x -= cos(rotationRad.y) * s.toFloat()
     }
 
     fun right(s: Double) {
-        var r = 0f
-
-        if (rH > 1){
-            r = (1-rH)
-        }
-        else {
-            r = (1+rH)
-        }
-
-        position.x += s.toFloat() * r
-        position.z += s.toFloat() * rH
+        position.z += sin(rotationRad.y) * s.toFloat()
+        position.x += cos(rotationRad.y) * s.toFloat()
     }
 
     fun up(s: Double) {
@@ -82,34 +76,52 @@ class Camera {
     }
 
     fun down(s: Double) {
-        position.y -= s.toFloat()
+        position.y += -s.toFloat()
     }
 
-    fun turnHorizontal(s: Double) {
-        updateRot()
-        rotHorizontal -= s.toFloat() * sensitivity * 7
-    }
-
-    fun turnVertical(s: Double) {
-        updateRot()
-        rotVertical -= s.toFloat() * sensitivity * 7
-    }
-
-    private fun clamp(value: Float, max_value: Float): Float {
-        return ((value % max_value) / max_value) * 2 - 1
-    }
-
-    private fun updateRot() {
-        if (!fixCam) {
-            // println("$rotHorizontal, $rotVertical")
-
-            rH = clamp(rotHorizontal, 360f)
-            rV = clamp(rotVertical, 360f)
-            rM = (rH + 1) / 2 + 0.5f
-
-            // println("$rH, $rV, $rM")
-            val newRot = Quaternionf(rV * rM, rH, rV * (1 - rM), 1f)
-            rotation.set(newRot.normalize().mul(rotation.normalize()).mul(rotation.conjugate().normalize()))
+    fun movePosition() {
+        if (offsetPos.z != 0f) {
+            position.x += sin(Math.toRadians(rotation.y.toDouble())).toFloat() * -1.0f * offsetPos.z
+            position.z += cos(Math.toRadians(rotation.y.toDouble())).toFloat() * offsetPos.z
         }
+
+        if (offsetPos.x != 0f) {
+            position.x += sin(Math.toRadians((rotation.y - 90).toDouble())).toFloat() * -1.0f * offsetPos.x
+            position.z += cos(Math.toRadians((rotation.y - 90).toDouble())).toFloat() * offsetPos.x
+        }
+
+        position.y += offsetPos.y
+    }
+
+    fun moveRotation(sH: Double, sV: Double) {
+        offsetRot.y = (sH.toFloat() * sensitivity * 7)
+        offsetRot.x = (sV.toFloat() * sensitivity * 7)
+        rotation.add(offsetRot)
+
+        val rot = (rotation.x % 360) * -1
+
+        if (rot < 280 && rot > 181) {
+            rotation.x = 280f * -1
+        }
+
+        if (rot > 80 && rot < 180) {
+            rotation.x = 80f * -1
+        }
+
+        rotationRad = toRadians(rotation)
+    }
+
+    fun toRadians(deg: Vector3f): Vector3f {
+        val result = Vector3f(0f)
+
+        result.x = Math.toRadians(deg.x.toDouble()).toFloat()
+        result.y = Math.toRadians(deg.y.toDouble()).toFloat()
+        result.z = Math.toRadians(deg.z.toDouble()).toFloat()
+
+        return result
+    }
+
+    fun toRadians(deg: Float): Float {
+        return Math.toRadians(deg.toDouble()).toFloat()
     }
 }

@@ -14,10 +14,11 @@ import java.nio.FloatBuffer
 import kotlin.collections.ArrayList
 
 class Mesh {
-    var vao: Int = 0    //vertex array object
-    var vbo: Int = 0
+    var vao: Int = 0    // vertex array object
+    var vbo: Int = 0    // vertex buffer object
     var cbo: Int = 0    // color buffer object
-    var ibo: Int = 0
+    var ibo: Int = 0    // indices buffer object
+    var nbo: Int = 0    // normal buffer object
 
     var vertexCount = 0
 
@@ -37,12 +38,7 @@ class Mesh {
 
         for (vertex in vertices) {
             this.vertices.add(vertex.getPosition())
-        }
-    }
-
-    fun loadColors(colors: ArrayList<Vertex>) {
-        for (vert in colors) {
-            this.colors.add(vert.getPosition())
+            this.colors.add(vertex.getPosition())
         }
     }
 
@@ -52,49 +48,67 @@ class Mesh {
             return false
         }
 
+        vertexCount = indices.size
+        vao = glGenVertexArrays()
+        glBindVertexArray(vao)
 
+        // Vertices
         val verticesBuffer: FloatBuffer = MemoryUtil.memAllocFloat(vertices.size * 3)
-        val verticesArray = FloatArray(vertices.size * 3)
-
-        for (i in 0 until vertices.size) {
-            verticesArray[i * 3] = vertices[i].x
-            verticesArray[i * 3 + 1] = vertices[i].y
-            verticesArray[i * 3 + 2] = vertices[i].z
-        }
+        val verticesArray = VecArrayToFloatArray(vertices)
 
         println("Mesh: ${verticesArray.size} vertices; ${verticesArray.size / 3} triangles -> ${verticesArray.toPrintable()}")
         verticesBuffer.put(verticesArray).flip()
 
-        vao = glGenVertexArrays()
-        glBindVertexArray(vao)
-
         vbo = glGenBuffers()
         glBindBuffer(GL_ARRAY_BUFFER, vbo)
         GL15.glBufferData(GL_ARRAY_BUFFER, verticesBuffer, GL_STATIC_DRAW)
-
         GL20.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0)
-
-        glBindBuffer(GL_ARRAY_BUFFER, 0)
-        glBindVertexArray(0)
-
         memFree(verticesBuffer)
-        vertexCount = indices.size
 
         // Indices
-        println(indices)
-        ibo = glGenBuffers()
+        println("Indices: ${indices.size} -> $indices")
         val indicesBuffer = MemoryUtil.memAllocInt(indices.size)
         indicesBuffer.put(indices.toIntArray()).flip()
+
+        ibo = glGenBuffers()
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo)
         GL15.glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesBuffer, GL_STATIC_DRAW)
         memFree(indicesBuffer)
 
+        // Colors
+        val colourBuffer = MemoryUtil.memAllocFloat(colors.size * 3)
+        val colourArray = VecArrayToFloatArray(colors)
+
+        println("Colors: ${colourArray.size} colours; ${colourArray.size / 3} triangles -> ${colourArray.toPrintable()}")
+        colourBuffer.put(colourArray).flip()
+
+        cbo = glGenBuffers()
+        glBindBuffer(GL_ARRAY_BUFFER, cbo)
+        GL15.glBufferData(GL_ARRAY_BUFFER, colourBuffer, GL_STATIC_DRAW)
+        GL20.glVertexAttribPointer(1, 3, GL_FLOAT, false, 0, 0)
+        memFree(colourBuffer)
+
+        // Normals
+        val normalBuffer = MemoryUtil.memAllocFloat(normals.size * 3)
+        val normalArray = VecArrayToFloatArray(normals)
+        normalBuffer.put(normalArray).flip()
+
+        nbo = glGenBuffers()
+        glBindBuffer(GL_ARRAY_BUFFER, nbo)
+        GL15.glBufferData(GL_ARRAY_BUFFER, normalBuffer, GL_STATIC_DRAW)
+        GL20.glVertexAttribPointer(3, 3, GL_FLOAT, false, 0, 0)
+        memFree(normalBuffer)
+
+        glBindVertexArray(0)
         return true
     }
 
     fun destroy() {
         glBindBuffer(vbo, 0)
         GL15.glDeleteBuffers(vbo)
+
+        glBindBuffer(ibo, 0)
+        GL15.glDeleteBuffers(ibo)
 
         glBindVertexArray(vao)
         glDeleteVertexArrays(vao)
@@ -104,16 +118,26 @@ class Mesh {
         glBindVertexArray(vao)
         glEnableVertexAttribArray(0)
         glEnableVertexAttribArray(1)
-
-        glBindBuffer(ibo, GL_ARRAY_BUFFER)
+        glEnableVertexAttribArray(2)
 
         GL11.glDrawElements(GL_TRIANGLES, vertexCount, GL_UNSIGNED_INT, 0)
 
-        glBindBuffer(0, GL_ARRAY_BUFFER)
-
+        glDisableVertexAttribArray(2)
         glDisableVertexAttribArray(1)
         glDisableVertexAttribArray(0)
         glBindVertexArray(0)
+    }
+
+    fun VecArrayToFloatArray(vertices: ArrayList<Vector3f>): FloatArray {
+        val verticesArray = FloatArray(vertices.size * 3)
+
+        for (i in 0 until vertices.size) {
+            verticesArray[i * 3] = vertices[i].x
+            verticesArray[i * 3 + 1] = vertices[i].y
+            verticesArray[i * 3 + 2] = vertices[i].z
+        }
+
+        return verticesArray
     }
 }
 
