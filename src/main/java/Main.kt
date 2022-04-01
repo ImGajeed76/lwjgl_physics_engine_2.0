@@ -29,7 +29,7 @@ val ground = Triangle(
     Vertex(Vector3f(0f, -5.5f, 5f), Vector3f(0.4f, 0.4f, 0.4f)),
     flip = true
 )
-val customObject = CustomObject(Loader().loadOBJ("plane"))
+val customObject = CustomObject(Loader().loadOBJ("monkey"))
 val plane = Plane(Vector3f(0.5f), 2f)
 
 var gameObjects = arrayListOf<GameObject>()
@@ -52,7 +52,7 @@ fun main() {
     }
 
     CAMERA.setPerspective(GAMEWINDOW.getFOV(70.0), GAMEWINDOW.getAspectRatio(), 0.01f, 1000f)
-    CAMERA.position = Vector3f(0f, 0f, 10f)
+    CAMERA.position = Vector3f(0f, 2f, 10f)
     CAMERA.rotation.rotateAxis(Math.toRadians(-0.0).toFloat(), Vector3f(1f, 0f, 0f))
 
     while (GAMEWINDOW.windowOpen()) {

@@ -88,8 +88,7 @@ class Loader {
             e.printStackTrace()
         }
 
-        println(vertices)
-        println(indices)
+
         return Model(vertices, textures, normals, indices, 0f)
     }
 }

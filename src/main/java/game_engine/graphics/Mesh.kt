@@ -4,6 +4,7 @@ import game_engine.maths.Face
 import game_engine.maths.Vertex
 import org.joml.Vector2f
 import org.joml.Vector3f
+import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30.*
@@ -15,27 +16,34 @@ import kotlin.collections.ArrayList
 class Mesh {
     var vao: Int = 0    //vertex array object
     var vbo: Int = 0
+    var cbo: Int = 0    // color buffer object
+    var ibo: Int = 0
 
     var vertexCount = 0
 
     var vertices: ArrayList<Vector3f> = arrayListOf()
+    var indices: ArrayList<Int> = arrayListOf()
 
     var colors: ArrayList<Vector3f> = arrayListOf()
     var normals: ArrayList<Vector3f> = arrayListOf()
     var textures: ArrayList<Vector2f> = arrayListOf()
 
     fun loadVertices(vertices: ArrayList<Vertex>, faces: ArrayList<Face>) {
-        println(vertices.size)
-        println(faces.size)
-
-        for (i in 0 until faces.size) {
-            this.vertices.add(vertices[faces[i].vertex.x.toInt()].getPosition())
-            this.vertices.add(vertices[faces[i].vertex.y.toInt()].getPosition())
-            this.vertices.add(vertices[faces[i].vertex.z.toInt()].getPosition())
+        for (face in faces) {
+            this.indices.add(face.vertex.x.toInt())
+            this.indices.add(face.vertex.y.toInt())
+            this.indices.add(face.vertex.z.toInt())
         }
 
-        println("Info: Vertices Loaded")
-        println(this.vertices)
+        for (vertex in vertices) {
+            this.vertices.add(vertex.getPosition())
+        }
+    }
+
+    fun loadColors(colors: ArrayList<Vertex>) {
+        for (vert in colors) {
+            this.colors.add(vert.getPosition())
+        }
     }
 
     fun create(): Boolean {
@@ -54,7 +62,7 @@ class Mesh {
             verticesArray[i * 3 + 2] = vertices[i].z
         }
 
-        println(verticesArray.toPrintable())
+        println("Mesh: ${verticesArray.size} vertices; ${verticesArray.size / 3} triangles -> ${verticesArray.toPrintable()}")
         verticesBuffer.put(verticesArray).flip()
 
         vao = glGenVertexArrays()
@@ -70,6 +78,16 @@ class Mesh {
         glBindVertexArray(0)
 
         memFree(verticesBuffer)
+        vertexCount = indices.size
+
+        // Indices
+        println(indices)
+        ibo = glGenBuffers()
+        val indicesBuffer = MemoryUtil.memAllocInt(indices.size)
+        indicesBuffer.put(indices.toIntArray()).flip()
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo)
+        GL15.glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesBuffer, GL_STATIC_DRAW)
+        memFree(indicesBuffer)
 
         return true
     }
@@ -85,9 +103,15 @@ class Mesh {
     fun draw() {
         glBindVertexArray(vao)
         glEnableVertexAttribArray(0)
+        glEnableVertexAttribArray(1)
 
-        glDrawArrays(GL_TRIANGLES, 0, 3)
+        glBindBuffer(ibo, GL_ARRAY_BUFFER)
 
+        GL11.glDrawElements(GL_TRIANGLES, vertexCount, GL_UNSIGNED_INT, 0)
+
+        glBindBuffer(0, GL_ARRAY_BUFFER)
+
+        glDisableVertexAttribArray(1)
         glDisableVertexAttribArray(0)
         glBindVertexArray(0)
     }
