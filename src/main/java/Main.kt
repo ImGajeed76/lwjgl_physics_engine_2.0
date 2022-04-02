@@ -1,9 +1,6 @@
 import game_engine.graphics.GameWindow
 import game_engine.graphics.objects.*
-import game_engine.loaders.Loader
 import game_engine.maths.Camera
-import game_engine.maths.Vertex
-import org.joml.Vector2f
 import org.joml.Vector3f
 import physics_engine.Gravity
 
@@ -19,22 +16,35 @@ lateinit var GAMEWINDOW: GameWindow
 val torus = OBJ("torus")
 val monkey = OBJ("monkey")
 val plane = OBJ("plane")
-val cube = OBJ("cube")
+val cube = OBJ("cube_quad")
+val icoBall = OBJ("ico_ball")
+val uvBall = OBJ("uv_ball")
+val bigIcoBall = OBJ("big_ico_ball")
+val cone = OBJ("cone")
 
 var gameObjects = arrayListOf<GameObject>()
 
 
 fun main() {
     CAMERA.fixCam = false
-    GAMEWINDOW = GameWindow(1500, 1000, "Physics Engine")
+    GAMEWINDOW = GameWindow(1000, 1000, "Physics Engine")
 
-    monkey.obj.physics.add(Gravity())
+    //cube.obj.physics.add(Gravity())
 
-    plane.obj.transform.position.y = -6f
+    torus.load()
+    monkey.load()
+    plane.load()
+    cube.load()
+    icoBall.load()
+    uvBall.load()
+    bigIcoBall.load()
+    cone.load()
+
+    plane.obj.transform.position.y = -7f
     plane.obj.transform.scale.x = 2f
     plane.obj.transform.scale.z= 2f
 
-    gameObjects.add(monkey.obj)
+    gameObjects.add(bigIcoBall.obj)
     gameObjects.add(plane.obj)
 
     for (gameObject in gameObjects) {

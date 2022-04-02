@@ -66,7 +66,7 @@ class Mesh {
         memFree(verticesBuffer)
 
         // Indices
-        println("Indices: ${indices.size} -> $indices")
+        println("Indices: ${indices.size} -> ${indices.toPrintable()}")
         val indicesBuffer = MemoryUtil.memAllocInt(indices.size)
         indicesBuffer.put(indices.toIntArray()).flip()
 
@@ -141,12 +141,42 @@ class Mesh {
     }
 }
 
+private fun <E> java.util.ArrayList<E>.toPrintable(): String {
+    val out = arrayListOf<E>()
+    val limit = 20
+
+    return if (this.size > limit) {
+        for (i in 0 until limit) {
+            out.add(this[i])
+        }
+
+        "$out..."
+    }
+    else {
+        for (f in this) {
+            out.add(f)
+        }
+
+        out.toString()
+    }
+}
+
 private fun FloatArray.toPrintable(): String {
     val out = arrayListOf<Float>()
+    val limit = 20
 
-    for (f in this) {
-        out.add(f)
+    return if (this.size > limit) {
+        for (i in 0 until limit) {
+            out.add(this[i])
+        }
+
+        "$out..."
     }
+    else {
+        for (f in this) {
+            out.add(f)
+        }
 
-    return out.toString()
+        out.toString()
+    }
 }

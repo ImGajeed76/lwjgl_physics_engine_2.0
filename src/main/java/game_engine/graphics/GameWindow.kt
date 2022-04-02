@@ -9,6 +9,9 @@ import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWVidMode
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11.*
+import java.awt.Dimension
+import java.awt.Toolkit
+
 
 class GameWindow(var width: Int, var height: Int, var title: String) {
     private var window: Long = 0
@@ -33,6 +36,9 @@ class GameWindow(var width: Int, var height: Int, var title: String) {
     var physUpdatesPerFrame: Int = 100
     var physDtScale: Double = 0.000000006
 
+    var currentWidth = width
+    var currentHeight = height
+
     init {
         if (!glfwInit()) {
             throw IllegalStateException("Failed to initialize GLFW!")
@@ -51,7 +57,7 @@ class GameWindow(var width: Int, var height: Int, var title: String) {
         glfwMakeContextCurrent(window)
         GL.createCapabilities()
 
-        //glEnable(GL_CULL_FACE)
+        glEnable(GL_CULL_FACE)
         glEnable(GL_DEPTH_TEST)
         glDepthMask(true)
 
@@ -105,6 +111,7 @@ class GameWindow(var width: Int, var height: Int, var title: String) {
     }
 
     private fun updateCam() {
+
         input.setCursorPos(window, (width / 2).toDouble(), (height / 2).toDouble())
 
         if (input.isKeyDown(GLFW_KEY_W)) {
@@ -160,7 +167,7 @@ class GameWindow(var width: Int, var height: Int, var title: String) {
     }
 
     fun getAspectRatio(): Float {
-        return (width / height).toFloat()
+        return currentWidth.toFloat() / currentHeight.toFloat()
     }
 
     fun getFOV(deg: Double): Float {
@@ -168,10 +175,31 @@ class GameWindow(var width: Int, var height: Int, var title: String) {
     }
 
     fun drawObjects(objects: ArrayList<GameObject>) {
+        CAMERA.setPerspective(getFOV(70.0), getAspectRatio(), 0.01f, 1000f)
+
         for (gameObject in objects) {
             gameObject.useShader()
             gameObject.setCamera(CAMERA)
             gameObject.draw()
+        }
+    }
+
+    fun setFullscreen(fullscreen: Boolean) {
+        if (fullscreen) {
+            val screenSize: Dimension = Toolkit.getDefaultToolkit().screenSize
+            val fullWidth = screenSize.getWidth()
+            val fullHeight = screenSize.getHeight()
+
+            currentWidth = fullWidth.toInt()
+            currentWidth = fullHeight.toInt()
+
+            window = glfwCreateWindow(currentWidth, currentHeight, title, glfwGetPrimaryMonitor(), 0)
+        }
+        else {
+            currentWidth = width
+            currentHeight = height
+
+            window = glfwCreateWindow(currentWidth, currentHeight, title, 0, 0)
         }
     }
 }

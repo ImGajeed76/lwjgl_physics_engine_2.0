@@ -7,6 +7,5 @@ class Model(
     var vertices: ArrayList<Vector3f>,
     var textures: ArrayList<Vector2f>,
     var normals: ArrayList<Vector3f>,
-    var indices: ArrayList<Int>,
-    var furthestPoint: Float
+    var indices: ArrayList<Int>
 )

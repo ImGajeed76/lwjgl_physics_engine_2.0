@@ -139,7 +139,7 @@ class Shader {
     }
 
     private fun setUniform(uniformName: String, value: Matrix4f) {
-        try  {
+        try {
             val stack = MemoryStack.stackPush()
             val fb = stack.mallocFloat(16)
             value.get(fb)
