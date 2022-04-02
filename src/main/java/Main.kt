@@ -16,7 +16,7 @@ lateinit var GAMEWINDOW: GameWindow
 val torus = OBJ("torus")
 val monkey = OBJ("monkey")
 val plane = OBJ("plane")
-val cube = OBJ("cube_quad")
+val cube = OBJ("cube")
 val icoBall = OBJ("ico_ball")
 val uvBall = OBJ("uv_ball")
 val bigIcoBall = OBJ("big_ico_ball")
@@ -31,14 +31,8 @@ fun main() {
 
     //cube.obj.physics.add(Gravity())
 
-    torus.load()
-    monkey.load()
-    plane.load()
-    cube.load()
-    icoBall.load()
-    uvBall.load()
     bigIcoBall.load()
-    cone.load()
+    plane.load()
 
     plane.obj.transform.position.y = -7f
     plane.obj.transform.scale.x = 2f
