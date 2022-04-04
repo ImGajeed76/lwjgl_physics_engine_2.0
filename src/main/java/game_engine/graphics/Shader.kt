@@ -63,9 +63,12 @@ class Shader {
             error(glGetProgramInfoLog(programm))
         }
 
-        uniMatProjection = glGetUniformLocation(programm, "cameraProjection")
-        uniMatTransformWorld = glGetUniformLocation(programm, "transformWorld")
-        uniMatTransformObject = glGetUniformLocation(programm, "transformObject")
+        createUniform("cameraProjection")
+        createUniform("transformWorld")
+        createUniform("transformObject")
+
+        createUniform("texture_sampler")
+        setUniform("texture_sampler", 0)
 
         return true
     }
@@ -91,27 +94,14 @@ class Shader {
     fun setCamera(camera: Camera) {
         this.camera = camera
 
-        if (uniMatProjection != -1) {
-            val matrix = FloatArray(16)
-            camera.getProjection().get(matrix)
-            glUniformMatrix4fv(uniMatProjection, false, matrix)
-        }
-
-        if (uniMatTransformWorld != -1) {
-            val matrix = FloatArray(16)
-            camera.getTransformation().get(matrix)
-            glUniformMatrix4fv(uniMatTransformWorld, false, matrix)
-        }
+        setUniform("cameraProjection", camera.getProjection())
+        setUniform("transformWorld", camera.getTransformation())
     }
 
     fun setTransform(transform: Transform) {
         this.transform = transform
 
-        if (uniMatTransformObject != -1) {
-            val matrix = FloatArray(16)
-            transform.getTransformation().get(matrix)
-            glUniformMatrix4fv(uniMatTransformObject, false, matrix)
-        }
+        setUniform("transformObject", transform.getTransformation())
     }
 
     private fun readSource(file: String): String {
@@ -126,43 +116,6 @@ class Shader {
         }
 
         return source
-    }
-
-    private fun createUniform(uniformName: String) {
-        val uniformLocation = glGetUniformLocation(programm, uniformName)
-
-        if (uniformLocation < 0) {
-            error("Error: Could not find uniform $uniformName")
-        }
-
-        uniforms[uniformName] = uniformLocation
-    }
-
-    private fun setUniform(uniformName: String, value: Matrix4f) {
-        try {
-            val stack = MemoryStack.stackPush()
-            val fb = stack.mallocFloat(16)
-            value.get(fb)
-            uniforms[uniformName]?.let { glUniformMatrix4fv(it, false, fb) }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
-
-    private fun setUniform(uniformName: String, value: Int) {
-        uniforms[uniformName]?.let { glUniform1i(it, value) }
-    }
-
-    private fun setUniform(uniformName: String, value: Float) {
-        uniforms[uniformName]?.let { glUniform1f(it, value) }
-    }
-
-    private fun setUniform(uniformName: String, value: Vector3f) {
-        uniforms[uniformName]?.let { glUniform3f(it, value.x, value.y, value.z) }
-    }
-
-    private fun setUniform(uniformName: String, value: Vector4f) {
-        uniforms[uniformName]?.let { glUniform4f(it, value.x, value.y, value.z, value.w) }
     }
 
     fun createPointLightUniform(uniformName: String) {
@@ -200,7 +153,6 @@ class Shader {
         setUniform("$uniformName.reflectance", material.reflectance)
     }
 
-
     fun setupLight() {
         createPointLightUniform("pointLight")
         createMaterialUniform("material")
@@ -219,5 +171,44 @@ class Shader {
         lightPos.z = aux.z
 
         setUniform("pointLight", pointLight)
+    }
+
+    private fun createUniform(uniformName: String) {
+        val uniformLocation = glGetUniformLocation(programm, uniformName)
+
+        if (uniformLocation < 0) {
+            error("Error: Could not find uniform $uniformName")
+        }
+
+        uniforms[uniformName] = uniformLocation
+    }
+
+    private fun setUniform(uniformName: String, value: Matrix4f) {
+        try {
+            val stack = MemoryStack.stackPush()
+            val fb = stack.mallocFloat(16)
+            value.get(fb)
+            uniforms[uniformName]?.let { glUniformMatrix4fv(it, false, fb) }
+
+            stack.pop()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    private fun setUniform(uniformName: String, value: Int) {
+        uniforms[uniformName]?.let { glUniform1i(it, value) }
+    }
+
+    private fun setUniform(uniformName: String, value: Float) {
+        uniforms[uniformName]?.let { glUniform1f(it, value) }
+    }
+
+    private fun setUniform(uniformName: String, value: Vector3f) {
+        uniforms[uniformName]?.let { glUniform3f(it, value.x, value.y, value.z) }
+    }
+
+    private fun setUniform(uniformName: String, value: Vector4f) {
+        uniforms[uniformName]?.let { glUniform4f(it, value.x, value.y, value.z, value.w) }
     }
 }

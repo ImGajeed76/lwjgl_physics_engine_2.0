@@ -9,11 +9,9 @@ import org.joml.Vector3f
 import physics_engine.Physic
 import physics_engine.PhysicsObject
 
-class CustomObject(model: Model, pos: Vector3f = Vector3f(0f)) : GameObject() {
+class CustomObject(override var model: Model, pos: Vector3f = Vector3f(0f)) : GameObject() {
 
     override var mesh: Mesh = Mesh()
-    override var vertexArray: ArrayList<Vertex> = arrayListOf()
-    override var faces: ArrayList<Face> = arrayListOf()
 
     override var shader: Shader = Shader()
     override var transform: Transform = Transform()
@@ -21,17 +19,11 @@ class CustomObject(model: Model, pos: Vector3f = Vector3f(0f)) : GameObject() {
     override var physicsObject: PhysicsObject = PhysicsObject()
 
     init {
-        faces.addVertexIndices(model.indices)
-
-        for (vertex in model.vertices) {
-            vertexArray.add(Vertex(vertex, vertex))
-        }
-
         transform.position = pos
     }
 
     override fun createMesh() {
-        mesh.loadVertices(vertexArray, faces)
+        mesh.loadModel(model)
         mesh.create()
     }
 

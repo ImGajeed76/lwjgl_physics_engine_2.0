@@ -1,18 +1,16 @@
 package game_engine.graphics.objects
 
 import game_engine.graphics.Mesh
+import game_engine.graphics.Model
 import game_engine.graphics.Shader
 import game_engine.maths.Camera
-import game_engine.maths.Face
 import game_engine.maths.Transform
-import game_engine.maths.Vertex
 import physics_engine.Physic
 import physics_engine.PhysicsObject
 
 abstract class GameObject {
     abstract var mesh: Mesh
-    abstract var vertexArray: ArrayList<Vertex>
-    abstract var faces: ArrayList<Face>
+    abstract var model: Model
 
     abstract var shader: Shader
 

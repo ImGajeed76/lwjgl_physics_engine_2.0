@@ -1,16 +1,16 @@
 package game_engine.graphics.objects
 
 import game_engine.graphics.Mesh
+import game_engine.graphics.Model
 import game_engine.graphics.Shader
 import game_engine.maths.*
 import org.joml.Vector3f
 import physics_engine.Physic
 import physics_engine.PhysicsObject
 
-class Triangle(var v1: Vertex, var v2: Vertex, var v3: Vertex, pos: Vector3f = Vector3f(0f), var doubleSite: Boolean = false, flip: Boolean = false) : GameObject() {
+class Triangle(var v1: Vector3f, var v2: Vector3f, var v3: Vector3f, pos: Vector3f = Vector3f(0f), var doubleSite: Boolean = false, flip: Boolean = false) : GameObject() {
     override var mesh: Mesh = Mesh()
-    override var vertexArray: ArrayList<Vertex>  = arrayListOf()
-    override var faces: ArrayList<Face> = arrayListOf()
+    override var model: Model = Model()
 
     override var shader: Shader = Shader()
 
@@ -24,20 +24,20 @@ class Triangle(var v1: Vertex, var v2: Vertex, var v3: Vertex, pos: Vector3f = V
         transform.position = pos
 
         if (flip) {
-            order = order.reversed() as ArrayList<Vertex>
+            order = order.reversed() as ArrayList<Vector3f>
         }
     }
 
     override fun createMesh() {
-        vertexArray = order
-        faces.addVertexIndices(arrayListOf(0, 1, 2))
+        model.vertices = order
+        model.faces.addVertexIndices(arrayListOf(0, 1, 2))
 
         if (doubleSite) {
-            faces = Face().addVertexIndices(faces, arrayListOf(0, 1, 2))
-            vertexArray.addAll(order.reversed() as ArrayList<Vertex>)
+            model.faces = Face().addVertexIndices(model.faces, arrayListOf(0, 1, 2))
+            model.vertices.addAll(order.reversed() as ArrayList<Vector3f>)
         }
 
-        mesh.loadVertices(vertexArray, faces)
+        mesh.loadModel(model)
         mesh.create()
     }
 

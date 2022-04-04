@@ -4,35 +4,47 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.jsonMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import de.matthiasmann.twl.utils.PNGDecoder
 import game_engine.graphics.Model
 import game_engine.maths.Face
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
+import org.lwjgl.opengl.ARBFramebufferObject.glGenerateMipmap
+import org.lwjgl.opengl.GL11.*
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.FileReader
+import java.nio.ByteBuffer
 import kotlin.system.measureTimeMillis
 
-class Loader {
-    var res = "src/main/resources"
-
+class Loader(var res: String = "src/main/resources") {
     fun loadOBJ(fileName: String): Model {
         val jsonFile = File("$res/objects/imports/$fileName.model")
         if (jsonFile.exists()) {
             println("Loading $fileName.model")
             var model: Model
+            var last: String
 
             val duration = measureTimeMillis {
                 val mapper = jacksonObjectMapper()
                 mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 
-                model = mapper.readValue(jsonFile)
+                val data: Map<String, Model> = mapper.readValue(jsonFile)
+
+                last = data.keys.first()
+                model = data.values.first()
+                model.textureId = 0
             }
 
-            println("Loaded $fileName.model in $duration milliseconds")
-            return model
+            val current = File("$res/objects/$fileName.obj").readText()
+            if (current == last) {
+                println("Loaded $fileName.model in $duration milliseconds")
+                return model
+            }
+
+            println("Changes were made. Reimporting $fileName.obj")
         }
 
         val fr: FileReader?
@@ -55,7 +67,7 @@ class Loader {
             val normals = arrayListOf<Vector3f>()
 
             val faces = arrayListOf<Face>()
-            val indices = arrayListOf<Int>()
+            var textureId = 0
 
             try {
                 while (true) {
@@ -68,24 +80,21 @@ class Loader {
 
                     if (line.startsWith("v ")) {
                         val vertex = Vector3f(
-                            currentLine[1].toFloat(),
-                            currentLine[2].toFloat(),
-                            currentLine[3].toFloat()
+                            currentLine[1].toFloat(), currentLine[2].toFloat(), currentLine[3].toFloat()
                         )
                         vertices.add(vertex)
                     } else if (line.startsWith("vt ")) {
                         val texture = Vector2f(
-                            currentLine[1].toFloat(),
-                            currentLine[2].toFloat()
+                            currentLine[1].toFloat(), currentLine[2].toFloat()
                         )
                         textures.add(texture)
                     } else if (line.startsWith("vn ")) {
                         val normal = Vector3f(
-                            currentLine[1].toFloat(),
-                            currentLine[2].toFloat(),
-                            currentLine[3].toFloat()
+                            currentLine[1].toFloat(), currentLine[2].toFloat(), currentLine[3].toFloat()
                         )
                         normals.add(normal)
+                    } else if (line.startsWith("usemtl ")) {
+                        textureId = loadTexture("${currentLine[1]}.png")
                     } else if (line.startsWith("f ")) {
                         break
                     }
@@ -99,41 +108,50 @@ class Loader {
                         val vertex2 = currentLine[2].split("/").toTypedArray()
                         val vertex3 = currentLine[3].split("/").toTypedArray()
 
-                        val vertexIndices =
-                            Vector3f(vertex1[0].toFloat() - 1, vertex2[0].toFloat() - 1, vertex3[0].toFloat() - 1)
-                        val textureIndices =
-                            Vector3f(vertex1[1].toFloat() - 1, vertex2[1].toFloat() - 1, vertex3[1].toFloat() - 1)
-                        val normalIndices =
-                            Vector3f(vertex1[2].toFloat() - 1, vertex2[2].toFloat() - 1, vertex3[2].toFloat() - 1)
+                        val vertexIndices = Vector3f(
+                            vertex1[0].toFloat() - 1, vertex2[0].toFloat() - 1, vertex3[0].toFloat() - 1
+                        )
+
+                        val textureIndices = Vector3f(
+                            vertex1[1].toFloat() - 1, vertex2[1].toFloat() - 1, vertex3[1].toFloat() - 1
+                        )
+
+                        var normalIndices = Vector3f(0f)
+                        if (vertex1.size == 3) {
+                            normalIndices = Vector3f(
+                                vertex1[2].toFloat() - 1, vertex2[2].toFloat() - 1, vertex3[2].toFloat() - 1
+                            )
+                        }
 
                         faces.add(Face(vertexIndices, textureIndices, normalIndices))
-
-                        indices.add(vertexIndices.x.toInt())
-                        indices.add(vertexIndices.y.toInt())
-                        indices.add(vertexIndices.z.toInt())
                     } else if (currentLine.size == 5) {
                         val vertex1 = currentLine[1].split("/").toTypedArray()
                         val vertex2 = currentLine[2].split("/").toTypedArray()
                         val vertex3 = currentLine[3].split("/").toTypedArray()
                         val vertex4 = currentLine[4].split("/").toTypedArray()
 
-                        val vertexIndices =
-                            Vector4f(
-                                vertex1[0].toFloat() - 1,
-                                vertex2[0].toFloat() - 1,
-                                vertex3[0].toFloat() - 1,
-                                vertex4[0].toFloat() - 1
+                        val vertexIndices = Vector4f(
+                            vertex1[0].toFloat() - 1,
+                            vertex2[0].toFloat() - 1,
+                            vertex3[0].toFloat() - 1,
+                            vertex4[0].toFloat() - 1
+                        )
+                        val textureIndices = Vector4f(
+                            vertex1[1].toFloat() - 1,
+                            vertex2[1].toFloat() - 1,
+                            vertex3[1].toFloat() - 1,
+                            vertex4[1].toFloat() - 1
+                        )
+                        var normalIndices = Vector4f(0f)
+
+                        if (vertex1.size == 3) {
+                            normalIndices = Vector4f(
+                                vertex1[2].toFloat() - 1,
+                                vertex2[2].toFloat() - 1,
+                                vertex3[2].toFloat() - 1,
+                                vertex4[2].toFloat() - 1
                             )
-                        val textureIndices =
-                            Vector4f(
-                                vertex1[1].toFloat() - 1,
-                                vertex2[1].toFloat() - 1,
-                                vertex3[1].toFloat() - 1,
-                                vertex4[1].toFloat() - 1
-                            )
-                        //val normalIndices =
-                        //    Vector4f(vertex1[2].toFloat() - 1, vertex2[2].toFloat() - 1, vertex3[2].toFloat() - 1, vertex4[2].toFloat() - 1)
-                        val normalIndices = Vector4f(0f)
+                        }
 
                         val vertexTris = quadToTri(vertexIndices)
                         val textureTris = quadToTri(textureIndices)
@@ -141,21 +159,6 @@ class Loader {
 
                         faces.add(Face(vertexTris[0], textureTris[0], normalTris[0]))
                         faces.add(Face(vertexTris[1], textureTris[1], normalTris[1]))
-
-                        indices.addAll(
-                            arrayListOf(
-                                vertexTris[0].x.toInt(),
-                                vertexTris[0].y.toInt(),
-                                vertexTris[0].z.toInt()
-                            )
-                        )
-                        indices.addAll(
-                            arrayListOf(
-                                vertexTris[1].x.toInt(),
-                                vertexTris[1].y.toInt(),
-                                vertexTris[1].z.toInt()
-                            )
-                        )
                     }
 
                     line = reader.readLine()
@@ -166,8 +169,9 @@ class Loader {
                 e.printStackTrace()
             }
 
-            model = Model(vertices, textures, normals, indices)
-            val modelAsString = jsonMapper().writeValueAsString(model)
+            model = Model(vertices, arrayListOf(), textures, textureId, normals, faces)
+            val text = File("$res/objects/$fileName.obj").readText()
+            val modelAsString = jsonMapper().writeValueAsString(mapOf(text to model))
 
             jsonFile.createNewFile()
             jsonFile.writeText(modelAsString)
@@ -178,7 +182,7 @@ class Loader {
         return model
     }
 
-    fun deleteEmptys(x: List<String>): List<String> {
+    private fun deleteEmptys(x: List<String>): List<String> {
         val result = arrayListOf<String>()
 
         for (s in x) {
@@ -190,10 +194,29 @@ class Loader {
         return result.toList()
     }
 
-    fun quadToTri(quad: Vector4f): List<Vector3f> {
+    private fun quadToTri(quad: Vector4f): List<Vector3f> {
         val v1 = Vector3f(quad.x, quad.y, quad.z)
         val v2 = Vector3f(quad.x, quad.z, quad.w)
 
         return listOf(v1, v2)
+    }
+
+    fun loadTexture(fileName: String): Int {
+        val file = File("$res/textures/$fileName")
+        val decoder = PNGDecoder(file.inputStream())
+
+        val buf = ByteBuffer.allocateDirect(4 * decoder.width * decoder.height)
+        decoder.decode(buf, decoder.width * 4, PNGDecoder.Format.RGBA)
+        buf.flip()
+
+        val textureId = glGenTextures()
+        glBindTexture(GL_TEXTURE_2D, textureId)
+
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, decoder.width, decoder.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, buf)
+
+        glGenerateMipmap(GL_TEXTURE_2D)
+
+        return textureId
     }
 }

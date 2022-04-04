@@ -1,8 +1,8 @@
 import game_engine.graphics.GameWindow
-import game_engine.graphics.objects.*
+import game_engine.graphics.objects.GameObject
+import game_engine.graphics.objects.OBJ
 import game_engine.maths.Camera
 import org.joml.Vector3f
-import physics_engine.Gravity
 
 //Const vars
 const val vertexShader = "basic_vertex.glsl"
@@ -15,12 +15,15 @@ lateinit var GAMEWINDOW: GameWindow
 //Game Objects
 val torus = OBJ("torus")
 val monkey = OBJ("monkey")
-val plane = OBJ("plane")
+val plane = OBJ("plane", "Grass.png")
 val cube = OBJ("cube")
 val icoBall = OBJ("ico_ball")
 val uvBall = OBJ("uv_ball")
 val bigIcoBall = OBJ("big_ico_ball")
 val cone = OBJ("cone")
+
+val grass_block = OBJ("Grass_Block", "Grass_Block_TEX.png")
+
 
 var gameObjects = arrayListOf<GameObject>()
 
@@ -31,14 +34,15 @@ fun main() {
 
     //cube.obj.physics.add(Gravity())
 
-    bigIcoBall.load()
+    grass_block.load()
+    monkey.load()
     plane.load()
 
     plane.obj.transform.position.y = -7f
     plane.obj.transform.scale.x = 2f
-    plane.obj.transform.scale.z= 2f
+    plane.obj.transform.scale.z = 2f
 
-    gameObjects.add(bigIcoBall.obj)
+    gameObjects.add(monkey.obj)
     gameObjects.add(plane.obj)
 
     for (gameObject in gameObjects) {
