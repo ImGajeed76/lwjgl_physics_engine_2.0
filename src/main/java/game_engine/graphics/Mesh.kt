@@ -36,14 +36,24 @@ class Mesh {
         faces = model.faces
         colors = model.colors
         normals = model.normals
-        textures = model.textures
         textureId = model.textureId
 
         loadVertices(model.vertices)
+        loadTextureCoords(model.textures)
     }
 
     fun loadFaces(faces: ArrayList<Face>) {
         this.faces = faces
+    }
+
+    fun loadTextureCoords(texCoords: ArrayList<Vector2f>) {
+        println(vertices.size)
+
+        for (face in faces) {
+            textures.add(texCoords[face.texture.x.toInt()])
+            textures.add(texCoords[face.texture.y.toInt()])
+            textures.add(texCoords[face.texture.z.toInt()])
+        }
     }
 
     fun loadVertices(vertices: ArrayList<Vector3f>) {
@@ -54,6 +64,7 @@ class Mesh {
         }
 
         this.vertices = vertices
+        colors = this.vertices
     }
 
     fun create(): Boolean {
@@ -70,7 +81,7 @@ class Mesh {
         val verticesBuffer: FloatBuffer = MemoryUtil.memAllocFloat(vertices.size * 3)
         val verticesArray = VecArrayToFloatArray(vertices)
 
-        println("Mesh: ${verticesArray.size} vertices; ${verticesArray.size / 3} triangles -> ${verticesArray.toPrintable()}")
+        println("Mesh: ${verticesArray.size / 3} vertices; ${indices.size / 3} triangles -> ${verticesArray.toPrintable()}")
         verticesBuffer.put(verticesArray).flip()
 
         vbo = glGenBuffers()
@@ -93,7 +104,7 @@ class Mesh {
         val colourBuffer = MemoryUtil.memAllocFloat(colors.size * 3)
         val colourArray = VecArrayToFloatArray(colors)
 
-        println("Colors: ${colourArray.size} colours; ${colourArray.size / 3} triangles -> ${colourArray.toPrintable()}")
+        println("Colors: ${colourArray.size / 3} colors -> ${colourArray.toPrintable()}")
         colourBuffer.put(colourArray).flip()
 
         cbo = glGenBuffers()
@@ -103,9 +114,10 @@ class Mesh {
         memFree(colourBuffer)
 
         // Textures
-        println("Textures: ${textures.size} -> ${textures.toPrintable()}")
         val textureBuffer = MemoryUtil.memAllocFloat(textures.size * 2)
         val textureArray = Vec2ArrayToFloatArray(textures)
+
+        println("Texture Coords: ${textureArray.size / 2} -> ${textureArray.toPrintable()}")
         textureBuffer.put(textureArray).flip()
 
         tbo = glGenBuffers()
@@ -141,16 +153,16 @@ class Mesh {
     }
 
     fun draw() {
+        if (textureId != 0) {
+            glActiveTexture(GL_TEXTURE0)
+            glBindTexture(GL_TEXTURE_2D, textureId)
+        }
+
         glBindVertexArray(vao)
         glEnableVertexAttribArray(0)
         glEnableVertexAttribArray(1)
         glEnableVertexAttribArray(2)
         glEnableVertexAttribArray(3)
-
-        if (textureId != 0) {
-            glActiveTexture(GL_TEXTURE0)
-            glBindTexture(GL_TEXTURE_2D, textureId)
-        }
 
         GL11.glDrawElements(GL_TRIANGLES, vertexCount, GL_UNSIGNED_INT, 0)
 

@@ -33,8 +33,6 @@ fun main() {
     GAMEWINDOW = GameWindow(1000, 1000, "Physics Engine")
 
     //cube.obj.physics.add(Gravity())
-
-    grass_block.load()
     monkey.load()
     plane.load()
 
