@@ -1,9 +1,11 @@
 package game_engine.graphics
 
 import CAMERA
+import game_engine.graphics.lighting.DirectionalLight
 import game_engine.graphics.objects.GameObject
 import game_engine.input.Input
 import game_engine.maths.FPS
+import org.joml.Vector3f
 import org.joml.Vector4f
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWVidMode
@@ -13,7 +15,8 @@ import java.awt.Dimension
 import java.awt.Toolkit
 
 
-class GameWindow(var width: Int, var height: Int, var title: String) {
+class GameWindow(var width: Int, var height: Int, var title: String, var usesLight: Boolean = false,
+                 var directionalLight: DirectionalLight = DirectionalLight(Vector3f(0f), Vector3f(0f), 0f)) {
     private var window: Long = 0
     private var videoMode: GLFWVidMode? = null
     var clearColor = Vector4f(1f, 1f, 1f, 1f)
@@ -72,6 +75,16 @@ class GameWindow(var width: Int, var height: Int, var title: String) {
 
         createCallbacks()
         input.setCursorPos(window, (width / 2).toDouble(), (height / 2).toDouble())
+    }
+
+    fun enableLight() {
+        usesLight = true
+        clearColor = Vector4f(0f, 0f, 0f, 1f)
+    }
+
+    fun disableLight() {
+        usesLight = false
+        clearColor = Vector4f(1f, 1f, 1f, 1f)
     }
 
     private fun createCallbacks() {
@@ -179,6 +192,7 @@ class GameWindow(var width: Int, var height: Int, var title: String) {
 
         for (gameObject in objects) {
             gameObject.useShader()
+            gameObject.shader.setLight(directionalLight)
             gameObject.setCamera(CAMERA)
             gameObject.draw()
         }

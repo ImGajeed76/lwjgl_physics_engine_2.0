@@ -8,6 +8,7 @@ import org.joml.Vector2f
 import org.joml.Vector3f
 import physics_engine.Physic
 import physics_engine.PhysicsObject
+import physics_engine.RigidBody
 
 class CustomObject(override var model: Model, pos: Vector3f = Vector3f(0f)) : GameObject() {
 
@@ -15,8 +16,7 @@ class CustomObject(override var model: Model, pos: Vector3f = Vector3f(0f)) : Ga
 
     override var shader: Shader = Shader()
     override var transform: Transform = Transform()
-    override var physics: ArrayList<Physic> = arrayListOf()
-    override var physicsObject: PhysicsObject = PhysicsObject()
+    override var rigidBody: RigidBody = RigidBody()
 
     init {
         transform.position = pos
@@ -40,13 +40,7 @@ class CustomObject(override var model: Model, pos: Vector3f = Vector3f(0f)) : Ga
     }
 
     override fun updatePhysics(others: ArrayList<GameObject>) {
-        physicsObject.position = transform.position
-
-        for (physic in physics) {
-            physicsObject = physic.update(physicsObject)
-        }
-
-        transform.position = physicsObject.position
+        transform.position = rigidBody.getPosition()
     }
 
     override fun draw() {

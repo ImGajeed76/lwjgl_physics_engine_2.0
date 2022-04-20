@@ -2,24 +2,18 @@ package game_engine.graphics.objects
 
 import game_engine.loaders.Loader
 
-class OBJ(var name: String, var texture: String? = null, autoLoad: Boolean = false) {
+class OBJ(var name: String, var texture: String = "default.png", autoLoad: Boolean = false) {
     lateinit var obj: CustomObject
 
     init {
         if (autoLoad) {
             obj = CustomObject(Loader().loadOBJ(name))
-
-            if (texture != null && obj.model.textureId == 0) {
-                obj.model.textureId = Loader().loadTexture(texture!!)
-            }
+            obj.model.textureId = Loader().loadTexture(texture)
         }
     }
 
     fun load() {
         obj = CustomObject(Loader().loadOBJ(name))
-
-        if (texture != null && obj.model.textureId == 0) {
-            obj.model.textureId = Loader().loadTexture(texture!!)
-        }
+        obj.model.textureId = Loader().loadTexture(texture)
     }
 }

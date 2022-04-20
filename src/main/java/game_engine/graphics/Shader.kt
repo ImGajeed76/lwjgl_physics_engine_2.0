@@ -1,8 +1,8 @@
 package game_engine.graphics
 
+import GAMEWINDOW
+import game_engine.graphics.lighting.DirectionalLight
 import game_engine.maths.Camera
-import game_engine.maths.Material
-import game_engine.maths.PointLight
 import game_engine.maths.Transform
 import org.joml.Matrix4f
 import org.joml.Vector3f
@@ -70,6 +70,11 @@ class Shader {
         createUniform("texture_sampler")
         setUniform("texture_sampler", 0)
 
+        if (GAMEWINDOW.usesLight) {
+            createUniform("specularPower")
+            createDirectionLightUniform("directionalLight")
+        }
+
         return true
     }
 
@@ -89,6 +94,13 @@ class Shader {
 
     fun unbind() {
         glUseProgram(0)
+    }
+
+    fun setLight(directionalLight: DirectionalLight, specularPower: Float = 10f) {
+        if (GAMEWINDOW.usesLight) {
+            setUniform("specularPower", specularPower)
+            setUniform("directionalLight", directionalLight)
+        }
     }
 
     fun setCamera(camera: Camera) {
@@ -116,61 +128,6 @@ class Shader {
         }
 
         return source
-    }
-
-    fun createPointLightUniform(uniformName: String) {
-        createUniform("$uniformName.colour")
-        createUniform("$uniformName.position")
-        createUniform("$uniformName.intensity")
-        createUniform("$uniformName.att.constant")
-        createUniform("$uniformName.att.linear")
-        createUniform("$uniformName.att.exponent")
-    }
-
-    fun createMaterialUniform(uniformName: String) {
-        createUniform("$uniformName.ambient")
-        createUniform("$uniformName.diffuse")
-        createUniform("$uniformName.specular")
-        createUniform("$uniformName.hasTexture")
-        createUniform("$uniformName.reflectance")
-    }
-
-    fun setUniform(uniformName: String, pointLight: PointLight) {
-        setUniform("$uniformName.colour", pointLight.colour)
-        setUniform("$uniformName.position", pointLight.position)
-        setUniform("$uniformName.intensity", pointLight.intensity)
-        val att: PointLight.Attenuation = pointLight.attenuation
-        setUniform("$uniformName.att.constant", att.constant)
-        setUniform("$uniformName.att.linear", att.linear)
-        setUniform("$uniformName.att.exponent", att.exponent)
-    }
-
-    fun setUniform(uniformName: String, material: Material) {
-        setUniform("$uniformName.ambient", material.ambient)
-        setUniform("$uniformName.diffuse", material.diffuse)
-        setUniform("$uniformName.specular", material.specular)
-        setUniform("$uniformName.hasTexture", if (material.hasTexture) 1 else 0)
-        setUniform("$uniformName.reflectance", material.reflectance)
-    }
-
-    fun setupLight() {
-        createPointLightUniform("pointLight")
-        createMaterialUniform("material")
-    }
-
-    fun useLight() {
-        val viewMatrix = camera.getTransformation().mul(transform.getTransformation())
-
-        val pointLight = PointLight()
-        val lightPos = pointLight.position
-        val aux = Vector4f(lightPos, 1f)
-        aux.mul(viewMatrix)
-
-        lightPos.x = aux.x
-        lightPos.y = aux.y
-        lightPos.z = aux.z
-
-        setUniform("pointLight", pointLight)
     }
 
     private fun createUniform(uniformName: String) {
@@ -210,5 +167,17 @@ class Shader {
 
     private fun setUniform(uniformName: String, value: Vector4f) {
         uniforms[uniformName]?.let { glUniform4f(it, value.x, value.y, value.z, value.w) }
+    }
+
+    private fun setUniform(uniformName: String, value: DirectionalLight) {
+        setUniform(uniformName, value.colour)
+        setUniform(uniformName, value.direction)
+        setUniform(uniformName, value.intensity)
+    }
+
+    fun createDirectionLightUniform(uniformName: String) {
+        createUniform("$uniformName.colour")
+        createUniform("$uniformName.direction")
+        createUniform("$uniformName.intensity")
     }
 }

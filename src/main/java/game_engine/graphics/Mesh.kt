@@ -49,11 +49,15 @@ class Mesh {
     fun loadTextureCoords(texCoords: ArrayList<Vector2f>) {
         println(vertices.size)
 
+        val textArr = Array(vertices.size) { Vector2f(0f) }
+
         for (face in faces) {
-            textures.add(texCoords[face.texture.x.toInt()])
-            textures.add(texCoords[face.texture.y.toInt()])
-            textures.add(texCoords[face.texture.z.toInt()])
+            textArr[face.vertex.x.toInt()] = texCoords[face.texture.x.toInt()]
+            textArr[face.vertex.y.toInt()] = texCoords[face.texture.y.toInt()]
+            textArr[face.vertex.z.toInt()] = texCoords[face.texture.z.toInt()]
         }
+
+        textures = textArr.toCollection(ArrayList())
     }
 
     fun loadVertices(vertices: ArrayList<Vector3f>) {
@@ -123,7 +127,7 @@ class Mesh {
         tbo = glGenBuffers()
         glBindBuffer(GL_ARRAY_BUFFER, tbo)
         GL15.glBufferData(GL_ARRAY_BUFFER, textureBuffer, GL_STATIC_DRAW)
-        GL20.glVertexAttribPointer(2, 3, GL_FLOAT, false, 0, 0)
+        GL20.glVertexAttribPointer(2, 2, GL_FLOAT, false, 0, 0)
         memFree(textureBuffer)
 
         // Normals
