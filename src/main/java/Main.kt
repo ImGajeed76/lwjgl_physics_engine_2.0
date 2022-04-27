@@ -58,7 +58,7 @@ val mat1 = Material(Vector4f(1f), 150f)
 fun main() {
     CAMERA.fixCam = false
     GAMEWINDOW = GameWindow(1000, 1000, "Physics Engine", directionalLight = sunLight)
-    GAMEWINDOW.enableLight()   // controls light
+    GAMEWINDOW.disableLight()   // controls light
 
     // Object and Physics loading
     objectContainer.createShaders(vertexShader, fragmentShader, vertexLightShader, fragmentLightShader)

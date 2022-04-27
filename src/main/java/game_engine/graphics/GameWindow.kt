@@ -146,8 +146,6 @@ class GameWindow(
 
     private fun updateCam() {
 
-        input.setCursorPos(window, (width / 2).toDouble(), (height / 2).toDouble())
-
         if (input.isKeyDown(GLFW_KEY_W)) {
             CAMERA.forward(CAMERA.speed * deltaTime)
         }
@@ -172,10 +170,13 @@ class GameWindow(
             CAMERA.up(CAMERA.speed * deltaTime)
         }
 
-        val mouseX = input.getMouseX() - (height / 2)
-        val mouseY = input.getMouseY() - (width / 2)
+        val mouseX = (input.getMouseX() - (currentWidth.toDouble() / 2))
+        val mouseY = (input.getMouseY() - (currentHeight.toDouble() / 2))
+        input.setCursorPos(window, (currentWidth.toDouble() / 2), (currentHeight.toDouble() / 2))
 
         CAMERA.moveRotation(mouseX.toFloat() * CAMERA.speed * deltaTime, mouseY.toFloat() * CAMERA.speed * deltaTime)
+
+        println("${input.getMouseX()}, ${input.getMouseY()}; $mouseX, $mouseY; ${(currentHeight.toDouble() / 2)}, ${(currentWidth.toDouble() / 2)}")
     }
 
     private fun checkExit() {
