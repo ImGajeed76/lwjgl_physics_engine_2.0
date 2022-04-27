@@ -175,8 +175,6 @@ class GameWindow(
         input.setCursorPos(window, (currentWidth.toDouble() / 2), (currentHeight.toDouble() / 2))
 
         CAMERA.moveRotation(mouseX.toFloat() * CAMERA.speed * deltaTime, mouseY.toFloat() * CAMERA.speed * deltaTime)
-
-        println("${input.getMouseX()}, ${input.getMouseY()}; $mouseX, $mouseY; ${(currentHeight.toDouble() / 2)}, ${(currentWidth.toDouble() / 2)}")
     }
 
     private fun checkExit() {
