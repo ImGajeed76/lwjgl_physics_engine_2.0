@@ -93,8 +93,6 @@ class Loader(var res: String = "src/main/resources") {
                             currentLine[1].toFloat(), currentLine[2].toFloat(), currentLine[3].toFloat()
                         )
                         normals.add(normal)
-                    } else if (line.startsWith("usemtl ")) {
-                        textureId = loadTexture("${currentLine[1]}.png")
                     } else if (line.startsWith("f ")) {
                         break
                     }
@@ -212,10 +210,19 @@ class Loader(var res: String = "src/main/resources") {
         val textureId = glGenTextures()
         glBindTexture(GL_TEXTURE_2D, textureId)
 
+        // Repetition
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
+
+        // Stretching and Shrinking
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, decoder.width, decoder.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, buf)
 
         glGenerateMipmap(GL_TEXTURE_2D)
+        glBindTexture(GL_TEXTURE_2D, 0)
 
         return textureId
     }

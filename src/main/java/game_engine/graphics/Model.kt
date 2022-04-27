@@ -1,5 +1,6 @@
 package game_engine.graphics
 
+import game_engine.graphics.lighting.Material
 import game_engine.maths.Face
 import org.joml.Vector2f
 import org.joml.Vector3f
@@ -11,4 +12,9 @@ class Model(
     var textureId: Int = 0,
     var normals: ArrayList<Vector3f> = arrayListOf(),
     var faces: ArrayList<Face> = arrayListOf(),
-)
+    var material: Material = Material()
+) {
+    fun hasTexture(): Boolean {
+        return textureId != 0
+    }
+}

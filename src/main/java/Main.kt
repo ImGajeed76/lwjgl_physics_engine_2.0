@@ -1,12 +1,19 @@
 import game_engine.graphics.GameWindow
 import game_engine.graphics.lighting.DirectionalLight
-import game_engine.graphics.objects.GameObject
+import game_engine.graphics.lighting.Material
+import game_engine.graphics.lighting.PointLight
 import game_engine.graphics.objects.OBJ
+import game_engine.graphics.objects.ObjectContainer
 import game_engine.maths.Camera
 import org.joml.Vector3f
+import org.joml.Vector4f
+import org.lwjgl.glfw.GLFW
 import physics_engine.PhysicsWorld
 import physics_engine.RigidBody
+import javax.vecmath.Quat4f
+import kotlin.math.abs
 import kotlin.math.cos
+import kotlin.math.max
 import kotlin.math.sin
 
 //Const vars
@@ -22,10 +29,12 @@ lateinit var GAMEWINDOW: GameWindow
 
 // Light
 var lightAngle = -90f
-var lightIntensity = 10.0f
-var lightPosition = Vector3f(-1f, -10f, 0f)
-var lightColour = Vector3f(255f)
-var directionalLight = DirectionalLight(lightColour, lightPosition, lightIntensity)
+var lightIntensity = 100f
+var lightPosition = Vector3f(0f)
+var lightColour = Vector3f(1f)
+var sunLight = DirectionalLight(lightColour, lightPosition, lightIntensity)
+
+var sun2 = PointLight("sun", lightColour, Vector3f(-7f, 1f, 0f), 100f, 0f, 0f, 1f)
 
 // Physics
 var physicsWorld = PhysicsWorld()
@@ -33,49 +42,43 @@ var physicsWorld = PhysicsWorld()
 // Game Objects
 val torus = OBJ("torus")
 val monkey = OBJ("monkey")
-val plane = OBJ("plane")
+val plane = OBJ("plane", "Grass.png")
 val cube = OBJ("cube")
 val icoBall = OBJ("ico_ball")
 val uvBall = OBJ("uv_ball")
-val bigIcoBall = OBJ("big_ico_ball")
 val cone = OBJ("cone")
-
 val grass_block = OBJ("Grass_Block", "Grass_Block_TEX.png")
 
+var objectContainer = ObjectContainer()
 
-var gameObjects = arrayListOf<GameObject>()
+// Materials
+val mat1 = Material(Vector4f(1f), 150f)
 
 
 fun main() {
-    var rigidBody = RigidBody()
-
     CAMERA.fixCam = false
-    GAMEWINDOW = GameWindow(1000, 1000, "Physics Engine", directionalLight = directionalLight)
-    GAMEWINDOW.disableLight()   // controls light
+    GAMEWINDOW = GameWindow(1000, 1000, "Physics Engine", directionalLight = sunLight)
+    GAMEWINDOW.enableLight()   // controls light
 
-    //cube.obj.physics.add(Gravity())
-    uvBall.load()
+    // Object and Physics loading
+    objectContainer.createShaders(vertexShader, fragmentShader, vertexLightShader, fragmentLightShader)
+    objectContainer.createPointLight(sun2)
+
+    icoBall.load()
+    objectContainer.addObject(icoBall)
+
     plane.load()
+    plane.obj.rigidBody = RigidBody().createPlane(0f, position = javax.vecmath.Vector3f(0f, -0.5f, 0f))
 
-    plane.obj.rigidBody = RigidBody().createPlane(0f, position = javax.vecmath.Vector3f(0f, -35f, 0f))
+    objectContainer.addObject(plane)
+    physicsWorld.addRigidBody(plane)
 
-    plane.obj.transform.scale.x = 1f
-    plane.obj.transform.scale.z = 1f
+    physicsWorld.updateAABBs()
+    objectContainer.initNewObjects()
 
-    gameObjects.add(uvBall.obj)
-    gameObjects.add(plane.obj)
 
-    physicsWorld.addRigidBody(uvBall.obj.rigidBody)
-    physicsWorld.addRigidBody(uvBall.obj.rigidBody)
-
-    for (gameObject in gameObjects) {
-        gameObject.createMesh()
-        if (GAMEWINDOW.usesLight) {
-            gameObject.createShader(vertexLightShader, fragmentLightShader)
-        } else {
-            gameObject.createShader(vertexShader, fragmentShader)
-        }
-    }
+    createCubePyramid("Grass_Block", "Grass_Block_TEX.png", 1f, 8, scale = Vector3f(0.5f))
+    // Finished
 
     CAMERA.setPerspective(GAMEWINDOW.getFOV(70.0), GAMEWINDOW.getAspectRatio(), 0.01f, 1000f)
     CAMERA.position = Vector3f(0f, 2f, 10f)
@@ -83,10 +86,10 @@ fun main() {
     while (GAMEWINDOW.windowOpen()) {
         GAMEWINDOW.updateAfterLast()
 
-        updatePhysics()
         update()
+        updatePhysics()
 
-        GAMEWINDOW.drawObjects(gameObjects)
+        objectContainer.draw(arrayListOf(sun2))
         GAMEWINDOW.updateBeforeNext()
     }
 
@@ -95,30 +98,154 @@ fun main() {
 }
 
 fun update() {
-    gameObjects[0].transform.rotation.rotateAxis(Math.toRadians(0.1 * GAMEWINDOW.deltaTime).toFloat(), 0f, 1f, 0f)
+    updateSunLight()
+    checkShoot()
+    checkCubeSpawn()
+    checkPyraSpawn()
+}
 
-    // println(".... DT: ${GAMEWINDOW.deltaTime}")
-    // println("Phys DT: ${GAMEWINDOW.physDT}")
-
-    // Light update
+fun updateSunLight() {
     lightAngle += 0.005f * GAMEWINDOW.deltaTime.toFloat()
+
+    /*
+    if (lightAngle > 90) {
+        sunLight.intensity = 0f
+        if (lightAngle >= 360) {
+            lightAngle = -90f
+        }
+    } else if (lightAngle <= -80 || lightAngle >= 80) {
+        val factor = 1 - (abs(lightAngle) - 80) / 10f
+        sunLight.intensity = factor
+        sunLight.colour.y = max(factor, 0.9f)
+        sunLight.colour.z = max(factor, 0.5f)
+    } else {
+        sunLight.intensity = 1f
+        sunLight.colour = Vector3f(1f)
+    }
+    */
+
     val angRad = Math.toRadians(lightAngle.toDouble())
-    directionalLight.direction.x = sin(angRad).toFloat()
-    directionalLight.direction.y = cos(angRad).toFloat()
+    sunLight.direction.x = sin(angRad).toFloat()
+    sunLight.direction.y = cos(angRad).toFloat()
+
+    objectContainer[0].transform.position = sunLight.direction.mul(100f)
+
+    GAMEWINDOW.directionalLight = sunLight
 }
 
 fun updatePhysics() {
     physicsWorld.stepSimulation(1f / GAMEWINDOW.FPS.fps)
-
-    for (i in 0 until GAMEWINDOW.physUpdatesPerFrame) {
-        for (gameObject in gameObjects) {
-            gameObject.updatePhysics(gameObjects)
-        }
-    }
+    objectContainer.updatePhysics()
 }
 
 fun destroy() {
-    for (gameObject in gameObjects) {
-        gameObject.destroy()
+    objectContainer.destroy()
+}
+
+fun createCubePyramid(
+    objName: String = "cube",
+    texture: String = "default.png",
+    mass: Float = 2f,
+    height: Int = 5,
+    position: Vector3f = Vector3f(0f),
+    scale: Vector3f = Vector3f(0.5f),
+    rbWidth: Float = 2f,
+    rbHeight: Float = 2f
+) {
+    val rW = rbWidth * scale.x
+    val rH = rbHeight * scale.y
+
+    for (i in 0 until height) {
+        for (j in 0 until height - i) {
+            val widthOffset = (j * rW) + (i * (rW / 2)) - (height / 2 * rW)
+
+            val pos = javax.vecmath.Vector3f(0f + position.x, (i * rH) + position.y, widthOffset + position.z)
+            println(pos)
+
+            val obj = OBJ(objName, texture, autoLoad = true).obj
+            val rb = RigidBody().createCube(mass, position = pos, scale = scale.toVecMath())
+
+            obj.rigidBody = rb
+
+            objectContainer.addObject(obj)
+            physicsWorld.addRigidBody(obj)
+        }
     }
+
+    physicsWorld.updateAABBs()
+    objectContainer.initNewObjects()
+}
+
+fun checkShoot() {
+    if (GAMEWINDOW.input.isMouseButtonPressed(GLFW.GLFW_MOUSE_BUTTON_1)) {
+        shoot()
+    }
+}
+
+fun checkCubeSpawn() {
+    if (GAMEWINDOW.input.isKeyPressed(GLFW.GLFW_KEY_C)) {
+        spawnCube(objName = "cube", position = CAMERA.position.copy().add(CAMERA.getForward()))
+    }
+}
+
+fun checkPyraSpawn() {
+    if (GAMEWINDOW.input.isKeyPressed(GLFW.GLFW_KEY_P)) {
+        createCubePyramid(position = Vector3f(CAMERA.position.x, 0f, CAMERA.position.z), height = 8)
+    }
+}
+
+fun shoot(
+    objName: String = "uv_ball", scale: Float = 1f, mass: Float = 5f, velPow: Float = 80f
+) {
+    val pos = CAMERA.position.copy()
+    val camDir = CAMERA.getForward()
+    val dir = camDir.toVecMath()
+    dir.normalize()
+    dir.scale(velPow)
+
+    val ball = OBJ(objName, autoLoad = true).obj
+    val rb = RigidBody().createSphere(0.7f * scale, mass, position = pos.toVecMath())
+    rb.rigidBody.activate(true)
+    rb.rigidBody.applyCentralImpulse(dir)
+
+    ball.rigidBody = rb
+
+    objectContainer.addObject(ball)
+    physicsWorld.addRigidBody(ball)
+
+    physicsWorld.updateAABBs()
+    objectContainer.initNewObjects()
+}
+
+fun spawnCube(
+    objName: String = "cube",
+    textureName: String = "default.png",
+    mass: Float = 2f,
+    position: Vector3f = Vector3f(0f),
+    rotation: Quat4f = Quat4f(0f, 0f, 0f, 1f),
+    scale: Vector3f = Vector3f(0.5f)
+) {
+    val cube = OBJ(objName, textureName, true).obj
+    val rb = RigidBody().createCube(mass, position.toVecMath(), rotation, scale.toVecMath())
+    rb.rigidBody.activate(true)
+
+    cube.rigidBody = rb
+
+    objectContainer.addObject(cube)
+    physicsWorld.addRigidBody(cube)
+
+    physicsWorld.updateAABBs()
+    objectContainer.initNewObjects()
+}
+
+private fun Vector3f.toVecMath(): javax.vecmath.Vector3f {
+    return javax.vecmath.Vector3f(this.x, this.y, this.z)
+}
+
+private fun javax.vecmath.Vector3f.toJoml(): Vector3f {
+    return Vector3f(this.x, this.y, this.z)
+}
+
+private fun Vector3f.copy(): Vector3f {
+    return Vector3f(this.x, this.y, this.z)
 }

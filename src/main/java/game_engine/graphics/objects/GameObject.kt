@@ -5,8 +5,6 @@ import game_engine.graphics.Model
 import game_engine.graphics.Shader
 import game_engine.maths.Camera
 import game_engine.maths.Transform
-import physics_engine.Physic
-import physics_engine.PhysicsObject
 import physics_engine.RigidBody
 
 abstract class GameObject {
@@ -16,7 +14,7 @@ abstract class GameObject {
     abstract var shader: Shader
 
     abstract var transform: Transform
-    abstract var rigidBody: RigidBody
+    abstract var rigidBody: RigidBody?
 
     abstract fun createMesh()
     abstract fun createShader(vertex_shader: String, fragment_shader: String)

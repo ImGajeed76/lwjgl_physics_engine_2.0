@@ -2,6 +2,8 @@ package game_engine.graphics
 
 import GAMEWINDOW
 import game_engine.graphics.lighting.DirectionalLight
+import game_engine.graphics.lighting.Material
+import game_engine.graphics.lighting.PointLight
 import game_engine.maths.Camera
 import game_engine.maths.Transform
 import org.joml.Matrix4f
@@ -73,6 +75,9 @@ class Shader {
         if (GAMEWINDOW.usesLight) {
             createUniform("specularPower")
             createDirectionLightUniform("directionalLight")
+
+            createUniform("ambientLight")
+            createMaterialUniform("material")
         }
 
         return true
@@ -94,6 +99,19 @@ class Shader {
 
     fun unbind() {
         glUseProgram(0)
+    }
+
+    fun setPointLight(uniformName: String, pointLight: PointLight) {
+        if (GAMEWINDOW.usesLight) {
+            setUniform(uniformName, pointLight)
+        }
+    }
+
+    fun setMaterial(model: Model, ambientLight: Vector3f = Vector3f(0.1f)) {
+        if (GAMEWINDOW.usesLight) {
+            setUniform("material", model.material, model.hasTexture())
+            setUniform("ambientLight", ambientLight)
+        }
     }
 
     fun setLight(directionalLight: DirectionalLight, specularPower: Float = 10f) {
@@ -175,9 +193,51 @@ class Shader {
         setUniform(uniformName, value.intensity)
     }
 
-    fun createDirectionLightUniform(uniformName: String) {
-        createUniform("$uniformName.colour")
-        createUniform("$uniformName.direction")
-        createUniform("$uniformName.intensity")
+    private fun setUniform(uniformName: String, value: Material, hasTexture: Boolean) {
+        var ht = 0
+        if (hasTexture) ht = 1
+        setUniform("$uniformName.ambient", value.ambientColour)
+        setUniform("$uniformName.diffuse", value.diffuseColour)
+        setUniform("$uniformName.specular", value.specularColour)
+        setUniform("$uniformName.hasTexture", ht)
+        setUniform("$uniformName.reflectance", value.reflectance)
+    }
+
+    private fun setUniform(uniformName: String, value: PointLight) {
+        setUniform("$uniformName.colour", value.colour)
+        setUniform("$uniformName.position", value.position)
+        setUniform("$uniformName.intensity", value.intensity)
+        setUniform("$uniformName.constant", value.constant)
+        setUniform("$uniformName.linear", value.linear)
+        setUniform("$uniformName.exponent", value.exponent)
+    }
+
+    private fun createDirectionLightUniform(uniformName: String) {
+        if (GAMEWINDOW.usesLight) {
+            createUniform("$uniformName.colour")
+            createUniform("$uniformName.direction")
+            createUniform("$uniformName.intensity")
+        }
+    }
+
+    private fun createMaterialUniform(uniformName: String) {
+        if (GAMEWINDOW.usesLight) {
+            createUniform("$uniformName.ambient")
+            createUniform("$uniformName.diffuse")
+            createUniform("$uniformName.specular")
+            createUniform("$uniformName.hasTexture")
+            createUniform("$uniformName.reflectance")
+        }
+    }
+
+    fun createPointLightUniform(uniformName: String) {
+        if (GAMEWINDOW.usesLight) {
+            createUniform("$uniformName.colour")
+            createUniform("$uniformName.position")
+            createUniform("$uniformName.intensity")
+            createUniform("$uniformName.constant")
+            createUniform("$uniformName.linear")
+            createUniform("$uniformName.exponent")
+        }
     }
 }

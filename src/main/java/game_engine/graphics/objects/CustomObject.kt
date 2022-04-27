@@ -3,11 +3,9 @@ package game_engine.graphics.objects
 import game_engine.graphics.Mesh
 import game_engine.graphics.Model
 import game_engine.graphics.Shader
-import game_engine.maths.*
-import org.joml.Vector2f
+import game_engine.maths.Camera
+import game_engine.maths.Transform
 import org.joml.Vector3f
-import physics_engine.Physic
-import physics_engine.PhysicsObject
 import physics_engine.RigidBody
 
 class CustomObject(override var model: Model, pos: Vector3f = Vector3f(0f)) : GameObject() {
@@ -16,7 +14,7 @@ class CustomObject(override var model: Model, pos: Vector3f = Vector3f(0f)) : Ga
 
     override var shader: Shader = Shader()
     override var transform: Transform = Transform()
-    override var rigidBody: RigidBody = RigidBody()
+    override var rigidBody: RigidBody? = null
 
     init {
         transform.position = pos
@@ -40,7 +38,11 @@ class CustomObject(override var model: Model, pos: Vector3f = Vector3f(0f)) : Ga
     }
 
     override fun updatePhysics(others: ArrayList<GameObject>) {
-        transform.position = rigidBody.getPosition()
+        if (rigidBody != null) {
+            transform.position = rigidBody!!.getPosition()
+            transform.rotation = rigidBody!!.getRotation()
+            transform.scale = rigidBody!!.getScale()
+        }
     }
 
     override fun draw() {

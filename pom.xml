@@ -16,7 +16,7 @@
         <lwjgl3-awt.version>0.1.8</lwjgl3-awt.version>
         <joml.version>1.10.3</joml.version>
         <steamworks4j-server.version>1.8.0</steamworks4j-server.version>
-        <kotlin.version>1.6.10</kotlin.version>
+        <kotlin.version>1.6.20</kotlin.version>
         <pngdecoder.version>1.0</pngdecoder.version>
     </properties>
 

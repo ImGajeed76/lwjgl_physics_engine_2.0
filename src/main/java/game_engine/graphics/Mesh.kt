@@ -22,7 +22,10 @@ class Mesh {
     var vertexCount = 0
 
     var vertices: ArrayList<Vector3f> = arrayListOf()
+
     var indices: ArrayList<Int> = arrayListOf()
+    var textureIndices: ArrayList<Int> = arrayListOf()
+    var normalIndices: ArrayList<Int> = arrayListOf()
 
     var colors: ArrayList<Vector3f> = arrayListOf()
     var normals: ArrayList<Vector3f> = arrayListOf()
@@ -35,40 +38,62 @@ class Mesh {
     fun loadModel(model: Model) {
         faces = model.faces
         colors = model.colors
-        normals = model.normals
         textureId = model.textureId
 
         loadVertices(model.vertices)
         loadTextureCoords(model.textures)
+        loadNormals(model.normals)
     }
 
     fun loadFaces(faces: ArrayList<Face>) {
         this.faces = faces
     }
 
+    fun loadNormals(normals: ArrayList<Vector3f>) {
+        val normArr = Array(faces.size * 3) { Vector3f(0f) }
+
+        for (i in 0 until indices.size) {
+            normArr[i] = normals[normalIndices[i]]
+        }
+
+        this.normals = normArr.toCollection(ArrayList())
+        println(this.normals.size)
+    }
+
     fun loadTextureCoords(texCoords: ArrayList<Vector2f>) {
-        println(vertices.size)
+        val textArr = Array(indices.size) { Vector2f(0f) }
 
-        val textArr = Array(vertices.size) { Vector2f(0f) }
-
-        for (face in faces) {
-            textArr[face.vertex.x.toInt()] = texCoords[face.texture.x.toInt()]
-            textArr[face.vertex.y.toInt()] = texCoords[face.texture.y.toInt()]
-            textArr[face.vertex.z.toInt()] = texCoords[face.texture.z.toInt()]
+        for (i in 0 until indices.size) {
+            textArr[i] = texCoords[textureIndices[i]].flip()
         }
 
         textures = textArr.toCollection(ArrayList())
+        println(textures.size)
     }
 
     fun loadVertices(vertices: ArrayList<Vector3f>) {
-        for (face in faces) {
-            indices.add(face.vertex.x.toInt())
-            indices.add(face.vertex.y.toInt())
-            indices.add(face.vertex.z.toInt())
+        val vertArr = arrayListOf<Vector3f>()
+
+        for (i in 0 until faces.size) {
+            vertArr.add(vertices[faces[i].vertex.x.toInt()])
+            vertArr.add(vertices[faces[i].vertex.y.toInt()])
+            vertArr.add(vertices[faces[i].vertex.z.toInt()])
+
+            indices.add(faces[i].vertex.x.toInt())
+            indices.add(faces[i].vertex.y.toInt())
+            indices.add(faces[i].vertex.z.toInt())
+
+            textureIndices.add(faces[i].texture.x.toInt())
+            textureIndices.add(faces[i].texture.y.toInt())
+            textureIndices.add(faces[i].texture.z.toInt())
+
+            normalIndices.add(faces[i].normal.x.toInt())
+            normalIndices.add(faces[i].normal.y.toInt())
+            normalIndices.add(faces[i].normal.z.toInt())
         }
 
-        this.vertices = vertices
-        colors = this.vertices
+        this.vertices = vertArr
+        println(this.vertices.size)
     }
 
     fun create(): Boolean {
@@ -92,6 +117,7 @@ class Mesh {
         glBindBuffer(GL_ARRAY_BUFFER, vbo)
         GL15.glBufferData(GL_ARRAY_BUFFER, verticesBuffer, GL_STATIC_DRAW)
         GL20.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0)
+        glEnableVertexAttribArray(0)
         memFree(verticesBuffer)
 
         // Indices
@@ -104,19 +130,6 @@ class Mesh {
         GL15.glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesBuffer, GL_STATIC_DRAW)
         memFree(indicesBuffer)
 
-        // Colors
-        val colourBuffer = MemoryUtil.memAllocFloat(colors.size * 3)
-        val colourArray = VecArrayToFloatArray(colors)
-
-        println("Colors: ${colourArray.size / 3} colors -> ${colourArray.toPrintable()}")
-        colourBuffer.put(colourArray).flip()
-
-        cbo = glGenBuffers()
-        glBindBuffer(GL_ARRAY_BUFFER, cbo)
-        GL15.glBufferData(GL_ARRAY_BUFFER, colourBuffer, GL_STATIC_DRAW)
-        GL20.glVertexAttribPointer(1, 3, GL_FLOAT, false, 0, 0)
-        memFree(colourBuffer)
-
         // Textures
         val textureBuffer = MemoryUtil.memAllocFloat(textures.size * 2)
         val textureArray = Vec2ArrayToFloatArray(textures)
@@ -127,21 +140,25 @@ class Mesh {
         tbo = glGenBuffers()
         glBindBuffer(GL_ARRAY_BUFFER, tbo)
         GL15.glBufferData(GL_ARRAY_BUFFER, textureBuffer, GL_STATIC_DRAW)
-        GL20.glVertexAttribPointer(2, 2, GL_FLOAT, false, 0, 0)
+        GL20.glVertexAttribPointer(1, 2, GL_FLOAT, false, 0, 0)
+        glEnableVertexAttribArray(1)
         memFree(textureBuffer)
 
         // Normals
         val normalBuffer = MemoryUtil.memAllocFloat(normals.size * 3)
         val normalArray = VecArrayToFloatArray(normals)
+
+        println("Normals: ${normalArray.size / 3} -> ${normalArray.toPrintable()}")
         normalBuffer.put(normalArray).flip()
 
         nbo = glGenBuffers()
         glBindBuffer(GL_ARRAY_BUFFER, nbo)
         GL15.glBufferData(GL_ARRAY_BUFFER, normalBuffer, GL_STATIC_DRAW)
-        GL20.glVertexAttribPointer(3, 3, GL_FLOAT, false, 0, 0)
+        GL20.glVertexAttribPointer(2, 3, GL_FLOAT, false, 0, 0)
+        glEnableVertexAttribArray(2)
         memFree(normalBuffer)
 
-        glBindVertexArray(0)
+        //glBindVertexArray(0)
         return true
     }
 
@@ -166,15 +183,17 @@ class Mesh {
         glEnableVertexAttribArray(0)
         glEnableVertexAttribArray(1)
         glEnableVertexAttribArray(2)
-        glEnableVertexAttribArray(3)
 
-        GL11.glDrawElements(GL_TRIANGLES, vertexCount, GL_UNSIGNED_INT, 0)
+        GL11.glDrawArrays(GL_TRIANGLES, 0, vertexCount)
 
-        glDisableVertexAttribArray(3)
         glDisableVertexAttribArray(2)
         glDisableVertexAttribArray(1)
         glDisableVertexAttribArray(0)
         glBindVertexArray(0)
+
+        if (textureId != 0) {
+            glBindTexture(GL_TEXTURE_2D, 0)
+        }
     }
 
     fun VecArrayToFloatArray(vertices: ArrayList<Vector3f>): FloatArray {
@@ -201,9 +220,13 @@ class Mesh {
     }
 }
 
+private fun Vector2f.flip(): Vector2f {
+    return Vector2f(this.x, this.y * -1 + 1)
+}
+
 private fun <E> java.util.ArrayList<E>.toPrintable(): String {
     val out = arrayListOf<E>()
-    val limit = 20
+    val limit = 40
 
     return if (this.size > limit) {
         for (i in 0 until limit) {
@@ -222,7 +245,7 @@ private fun <E> java.util.ArrayList<E>.toPrintable(): String {
 
 private fun FloatArray.toPrintable(): String {
     val out = arrayListOf<Float>()
-    val limit = 20
+    val limit = 40
 
     return if (this.size > limit) {
         for (i in 0 until limit) {

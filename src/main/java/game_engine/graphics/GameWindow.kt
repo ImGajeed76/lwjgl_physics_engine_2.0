@@ -2,26 +2,31 @@ package game_engine.graphics
 
 import CAMERA
 import game_engine.graphics.lighting.DirectionalLight
-import game_engine.graphics.objects.GameObject
 import game_engine.input.Input
 import game_engine.maths.FPS
 import org.joml.Vector3f
 import org.joml.Vector4f
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWVidMode
+import org.lwjgl.glfw.GLFWWindowSizeCallback
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11.*
 import java.awt.Dimension
 import java.awt.Toolkit
 
 
-class GameWindow(var width: Int, var height: Int, var title: String, var usesLight: Boolean = false,
-                 var directionalLight: DirectionalLight = DirectionalLight(Vector3f(0f), Vector3f(0f), 0f)) {
+class GameWindow(
+    var width: Int,
+    var height: Int,
+    var title: String,
+    var usesLight: Boolean = false,
+    var directionalLight: DirectionalLight = DirectionalLight(Vector3f(1f), Vector3f(-100f, -100f, 0f), 1f)
+) {
     private var window: Long = 0
     private var videoMode: GLFWVidMode? = null
     var clearColor = Vector4f(1f, 1f, 1f, 1f)
 
-    private var input = Input()
+    var input = Input()
     private var isWindowOpen = true
 
     var FPS: FPS = FPS()
@@ -31,16 +36,27 @@ class GameWindow(var width: Int, var height: Int, var title: String, var usesLig
     var lastDTCheck: Long = System.nanoTime()
     var dtScale: Double = 1.0
 
-    var camRotX = 0f
-    var camRotY = 0f
-
     // Physics
     var physDT: Double = 0.001
     var physUpdatesPerFrame: Int = 100
     var physDtScale: Double = 0.000000006
+    // -------
 
     var currentWidth = width
     var currentHeight = height
+
+    private var lastPosX = IntArray(1)
+    private var lastPosY = IntArray(1)
+    private var fullscreen = false
+    private var lastIsFullscreen = false
+
+    private var sizeCallback = object : GLFWWindowSizeCallback() {
+        override fun invoke(window: Long, w: Int, h: Int) {
+            currentWidth = w
+            currentHeight = h
+            glViewport(0, 0, currentWidth, currentHeight)
+        }
+    }
 
     init {
         if (!glfwInit()) {
@@ -91,6 +107,7 @@ class GameWindow(var width: Int, var height: Int, var title: String, var usesLig
         glfwSetKeyCallback(window, input.getKeyboardCallback())
         glfwSetCursorPosCallback(window, input.getMouseMoveCallback())
         glfwSetMouseButtonCallback(window, input.getMouseButtonCallback())
+        glfwSetWindowSizeCallback(window, sizeCallback)
     }
 
     fun windowOpen(): Boolean {
@@ -98,6 +115,10 @@ class GameWindow(var width: Int, var height: Int, var title: String, var usesLig
     }
 
     fun updateAfterLast() {
+        checkForFullscreen()
+        showFullscreen()
+
+        CAMERA.setPerspective(getFOV(70.0), getAspectRatio(), 0.01f, 1000f)
         updateDeltaTime()
         updateFPS()
         checkExit()
@@ -151,8 +172,8 @@ class GameWindow(var width: Int, var height: Int, var title: String, var usesLig
             CAMERA.up(CAMERA.speed * deltaTime)
         }
 
-        val mouseX = input.getMouseX() - (width / 2)
-        val mouseY = input.getMouseY() - (height / 2)
+        val mouseX = input.getMouseX() - (height / 2)
+        val mouseY = input.getMouseY() - (width / 2)
 
         CAMERA.moveRotation(mouseX.toFloat() * CAMERA.speed * deltaTime, mouseY.toFloat() * CAMERA.speed * deltaTime)
     }
@@ -187,33 +208,29 @@ class GameWindow(var width: Int, var height: Int, var title: String, var usesLig
         return Math.toRadians(deg).toFloat()
     }
 
-    fun drawObjects(objects: ArrayList<GameObject>) {
-        CAMERA.setPerspective(getFOV(70.0), getAspectRatio(), 0.01f, 1000f)
-
-        for (gameObject in objects) {
-            gameObject.useShader()
-            gameObject.shader.setLight(directionalLight)
-            gameObject.setCamera(CAMERA)
-            gameObject.draw()
+    private fun checkForFullscreen() {
+        if (input.isKeyPressed(GLFW_KEY_F11) || input.isKeyPressed(GLFW_KEY_F)) {
+            fullscreen = !fullscreen
         }
     }
 
-    fun setFullscreen(fullscreen: Boolean) {
-        if (fullscreen) {
-            val screenSize: Dimension = Toolkit.getDefaultToolkit().screenSize
-            val fullWidth = screenSize.getWidth()
-            val fullHeight = screenSize.getHeight()
+    fun showFullscreen() {
+        val screenSize: Dimension = Toolkit.getDefaultToolkit().screenSize
+        val screenW = screenSize.width
+        val screenH = screenSize.height
 
-            currentWidth = fullWidth.toInt()
-            currentWidth = fullHeight.toInt()
-
-            window = glfwCreateWindow(currentWidth, currentHeight, title, glfwGetPrimaryMonitor(), 0)
+        if (fullscreen && lastIsFullscreen != fullscreen) {
+            currentWidth = screenW
+            currentHeight = screenH
+            glfwGetWindowPos(window, lastPosX, lastPosY)
+            glfwSetWindowMonitor(window, glfwGetPrimaryMonitor(), 0, 0, currentWidth, currentHeight, 0)
         }
-        else {
+        else if (lastIsFullscreen != fullscreen) {
             currentWidth = width
             currentHeight = height
-
-            window = glfwCreateWindow(currentWidth, currentHeight, title, 0, 0)
+            glfwSetWindowMonitor(window, 0, lastPosX[0], lastPosY[0], currentWidth, currentHeight, 0)
         }
+
+        lastIsFullscreen = fullscreen
     }
 }

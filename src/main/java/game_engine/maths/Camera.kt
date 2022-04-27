@@ -14,13 +14,6 @@ class Camera {
     var speed: Float = 0.009F
     var sensitivity: Float = 2f
 
-    private var rotHorizontal = 540f - (1170 - 540)
-    private var rotVertical = 540f - (1170 - 540)
-
-    var rH = 0f
-    var rV = 0f
-    var rM = 0f
-
     var fixCam = false
 
     private var offsetPos = Vector3f(0f)
@@ -79,36 +72,33 @@ class Camera {
         position.y += -s.toFloat()
     }
 
-    fun movePosition() {
-        if (offsetPos.z != 0f) {
-            position.x += sin(Math.toRadians(rotation.y.toDouble())).toFloat() * -1.0f * offsetPos.z
-            position.z += cos(Math.toRadians(rotation.y.toDouble())).toFloat() * offsetPos.z
-        }
-
-        if (offsetPos.x != 0f) {
-            position.x += sin(Math.toRadians((rotation.y - 90).toDouble())).toFloat() * -1.0f * offsetPos.x
-            position.z += cos(Math.toRadians((rotation.y - 90).toDouble())).toFloat() * offsetPos.x
-        }
-
-        position.y += offsetPos.y
-    }
-
     fun moveRotation(sH: Double, sV: Double) {
-        offsetRot.y = (sH.toFloat() * sensitivity * 7)
-        offsetRot.x = (sV.toFloat() * sensitivity * 7)
+        offsetRot.y = (sH.toFloat() * sensitivity * 7f)
+        offsetRot.x = (sV.toFloat() * sensitivity * 7f)
         rotation.add(offsetRot)
 
-        val rot = (rotation.x % 360) * -1
-
-        if (rot < 280 && rot > 181) {
-            rotation.x = 280f * -1
-        }
-
-        if (rot > 80 && rot < 180) {
-            rotation.x = 80f * -1
-        }
+        rotation.x = (rotation.x + 360) % 360
+        rotation.y = (rotation.y + 360) % 360
 
         rotationRad = toRadians(rotation)
+
+        if (rotation.x > 90 && rotation.x < 181) {
+            rotation.x = 90f
+        }
+
+        if (rotation.x < 270 && rotation.x > 180) {
+            rotation.x = 270f
+        }
+    }
+
+    fun getForward(): Vector3f {
+        val result = Vector3f(0f)
+
+        result.x = sin(rotationRad.y)
+        result.z = -cos(rotationRad.y)
+        result.y = -sin(rotationRad.x)
+
+        return result
     }
 
     fun toRadians(deg: Vector3f): Vector3f {
