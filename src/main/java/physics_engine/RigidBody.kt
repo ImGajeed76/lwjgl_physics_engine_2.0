@@ -14,6 +14,11 @@ import javax.vecmath.Matrix4f
 import javax.vecmath.Quat4f
 import javax.vecmath.Vector3f
 
+
+val RB_PLANE = 0
+val RB_CUBE = 1
+val RB_SPHERE = 2
+
 class RigidBody {
     private val defaultShape = SphereShape(3f)
     private val defaultMotionState: MotionState =
@@ -43,6 +48,17 @@ class RigidBody {
         rigidBody = RigidBody(constructionInfo)
 
         return this
+    }
+
+    fun createSphere(
+        mat: Material, position: Vector3f = Vector3f(0f, 0f, 0f), rotation: Quat4f = Quat4f(0f, 0f, 0f, 1f)
+    ): physics_engine.RigidBody {
+        val radius = mat.getRadius()
+        val mass = mat.mass
+
+        val rb = createSphere(radius, mass, position, rotation)
+
+        return rb
     }
 
     fun createPlane(
@@ -88,6 +104,38 @@ class RigidBody {
         return this
     }
 
+    fun createCube(
+        mat: Material,
+        position: Vector3f = Vector3f(0f, 0f, 0f),
+        rotation: Quat4f = Quat4f(0f, 0f, 0f, 1f),
+    ): physics_engine.RigidBody {
+        val mass = mat.mass
+        val scale = mat.volume.toVecMath()
+
+        val rb = createCube(mass, position, rotation, scale)
+
+        return rb
+    }
+
+    fun create(
+        type: Int,
+        mat: Material,
+        position: org.joml.Vector3f = org.joml.Vector3f(0f),
+        rotation: Quat4f = Quat4f(0f, 0f, 0f, 1f)
+    ): physics_engine.RigidBody {
+        var rb = RigidBody()
+
+        if (type == RB_CUBE) {
+            rb = createCube(mat, position.toVecMath(), rotation)
+        }
+
+        else if (type == RB_SPHERE) {
+            rb = createSphere(mat, position.toVecMath(), rotation)
+        }
+
+        return rb
+    }
+
     fun getPosition(): org.joml.Vector3f {
         val pos = rigidBody.getWorldTransform(Transform()).origin
         return vec3fToVec3f(pos)
@@ -116,4 +164,16 @@ class RigidBody {
     private fun vec3fToVec3f(v1: Vector3f): org.joml.Vector3f {
         return org.joml.Vector3f(v1.x, v1.y, v1.z)
     }
+}
+
+private fun org.joml.Vector3f.toVecMath(): javax.vecmath.Vector3f {
+    return javax.vecmath.Vector3f(this.x, this.y, this.z)
+}
+
+private fun javax.vecmath.Vector3f.toJoml(): org.joml.Vector3f {
+    return org.joml.Vector3f(this.x, this.y, this.z)
+}
+
+private fun org.joml.Vector3f.copy(): org.joml.Vector3f {
+    return org.joml.Vector3f(this.x, this.y, this.z)
 }

@@ -8,12 +8,9 @@ import game_engine.maths.Camera
 import org.joml.Vector3f
 import org.joml.Vector4f
 import org.lwjgl.glfw.GLFW
-import physics_engine.PhysicsWorld
-import physics_engine.RigidBody
+import physics_engine.*
 import javax.vecmath.Quat4f
-import kotlin.math.abs
 import kotlin.math.cos
-import kotlin.math.max
 import kotlin.math.sin
 
 //Const vars
@@ -77,7 +74,7 @@ fun main() {
     objectContainer.initNewObjects()
 
 
-    createCubePyramid("Grass_Block", "Grass_Block_TEX.png", 1f, 8, scale = Vector3f(0.5f))
+    //createCubePyramid("Grass_Block", "Grass_Block_TEX.png", 1f, 8, scale = Vector3f(0.5f))
     // Finished
 
     CAMERA.setPerspective(GAMEWINDOW.getFOV(70.0), GAMEWINDOW.getAspectRatio(), 0.01f, 1000f)
@@ -102,6 +99,7 @@ fun update() {
     checkShoot()
     checkCubeSpawn()
     checkPyraSpawn()
+    checkMaterialSpawn()
 }
 
 fun updateSunLight() {
@@ -192,6 +190,28 @@ fun checkPyraSpawn() {
     if (GAMEWINDOW.input.isKeyPressed(GLFW.GLFW_KEY_P)) {
         createCubePyramid(position = Vector3f(CAMERA.position.x, 0f, CAMERA.position.z), height = 8)
     }
+}
+
+fun checkMaterialSpawn() {
+    if (GAMEWINDOW.input.isKeyPressed(GLFW.GLFW_KEY_H)) {
+        spawnMaterial("uv_ball", material = physics_engine.Material(Vector3f(1f), D_HELIUM, true), type = RB_SPHERE)
+    }
+}
+
+fun spawnMaterial(
+    objName: String = "cube", texName: String = "default.png", material: physics_engine.Material, type: Int = RB_CUBE
+) {
+    val pos = CAMERA.position.copy()
+
+    val obj = OBJ(objName, texName, true).obj
+    val rb = RigidBody().create(type, material, pos)
+    obj.rigidBody = rb
+
+    objectContainer.addObject(obj)
+    physicsWorld.addRigidBody(obj)
+
+    physicsWorld.updateAABBs()
+    objectContainer.initNewObjects()
 }
 
 fun shoot(
