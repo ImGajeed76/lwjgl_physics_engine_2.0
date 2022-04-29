@@ -16,4 +16,8 @@ class OBJ(var name: String, var texture: String = "default.png", autoLoad: Boole
         obj = CustomObject(Loader().loadOBJ(name))
         obj.model.textureId = Loader().loadTexture(texture)
     }
+
+    fun copy(): GameObject {
+        return CustomObject(obj.model)
+    }
 }

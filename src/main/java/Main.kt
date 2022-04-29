@@ -194,17 +194,23 @@ fun checkPyraSpawn() {
 
 fun checkMaterialSpawn() {
     if (GAMEWINDOW.input.isKeyPressed(GLFW.GLFW_KEY_H)) {
-        spawnMaterial("uv_ball", material = physics_engine.Material(Vector3f(1f), D_HELIUM, true), type = RB_SPHERE)
+        spawnMaterial("uv_ball", material = Material(Vector3f(1f), D_HELIUM), type = RB_SPHERE)
+    }
+
+    if (GAMEWINDOW.input.isKeyPressed(GLFW.GLFW_KEY_G)) {
+        spawnCubeCube(position = CAMERA.position.copy(), divider = 7)
     }
 }
 
 fun spawnMaterial(
-    objName: String = "cube", texName: String = "default.png", material: physics_engine.Material, type: Int = RB_CUBE
+    objName: String = "cube",
+    texName: String = "default.png",
+    material: physics_engine.Material,
+    position: Vector3f = CAMERA.position.copy(),
+    type: Int = RB_CUBE
 ) {
-    val pos = CAMERA.position.copy()
-
     val obj = OBJ(objName, texName, true).obj
-    val rb = RigidBody().create(type, material, pos)
+    val rb = RigidBody().create(type, material, position)
     obj.rigidBody = rb
 
     objectContainer.addObject(obj)
@@ -235,6 +241,44 @@ fun shoot(
 
     physicsWorld.updateAABBs()
     objectContainer.initNewObjects()
+}
+
+fun spawnCubeCube(
+    divider: Int = 2,
+    objName: String = "cube",
+    texName: String = "default.png",
+    mat: physics_engine.Material = Material(Vector3f(1f), D_IRON),
+    position: Vector3f = Vector3f(0f)
+) {
+    val scale = Vector3f(
+        (mat.getVolume() / divider), (mat.getVolume() / divider), (mat.getVolume() / divider)
+    )
+
+    val cube = OBJ(objName, texName, true)
+    cube.load()
+
+    for (i in 0 until divider) {
+        for (j in 0 until divider) {
+            for (k in 0 until divider) {
+                val pos = Vector3f(
+                    position.x + (i * scale.x * 2),
+                    j * scale.y * 2 - 0.5f,
+                    position.z + (k * scale.z * 2)
+                )
+                val cube_copy = cube.copy()
+                val rb = RigidBody().createCube(mat.mass, pos.toVecMath(), scale = scale.toVecMath())
+                cube_copy.rigidBody = rb
+
+                objectContainer.addObject(cube_copy)
+                physicsWorld.addRigidBody(cube_copy)
+            }
+        }
+    }
+
+    physicsWorld.updateAABBs()
+    objectContainer.initNewObjects()
+
+    println("${scale.x}, ${scale.y}, ${scale.z}")
 }
 
 fun spawnCube(
